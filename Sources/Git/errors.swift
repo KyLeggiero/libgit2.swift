@@ -1,7 +1,7 @@
 //
 // errors.swift
 //
-// Written by Ky.
+// Written by Ky on 2024-11-09.
 // Copyright waived. No rights reserved.
 //
 // This file is part of libgit2.swift, distributed under the Free License.

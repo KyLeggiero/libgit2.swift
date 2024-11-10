@@ -1,7 +1,7 @@
 //
 // commit.swift
 //
-// Written by Ky.
+// Written by Ky on 2024-11-09.
 // Copyright waived. No rights reserved.
 //
 // This file is part of libgit2.swift, distributed under the Free License.
@@ -15,13 +15,13 @@ import Foundation
 @available(*, deprecated, renamed: "Commit")
 typealias git_commit = Commit
 public struct Commit {
-    var object: git_object
+    var object: Object
 
-//    var parent_ids: git_array_t<git_oid>
-//    var tree_id: git_oid
-//
-//    var author: git_signature
-//    var committer: git_signature
+    var parent_ids: git_array_t<Oid>
+    var tree_id: Oid
+
+    var author: git_signature
+    var committer: git_signature
 
     var message_encoding: String
     var raw_message: String
