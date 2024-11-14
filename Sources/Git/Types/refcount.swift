@@ -11,9 +11,15 @@
 import Foundation
 
 
-@available(*, unavailable, renamed: "RefCount")
-typealias git_refcount = RefCount
-struct RefCount: Sendable {
-    var refcount: Atomic32
-    var owner: (any Sendable)?
+
+public struct RefCount: AnyStructProtocol {
+    public var refcount: Atomic32
+    public weak var owner: (any Sendable & AnyObject)?
 }
+
+
+
+// MARK: - Migration
+
+@available(*, unavailable, renamed: "RefCount")
+public typealias git_refcount = RefCount

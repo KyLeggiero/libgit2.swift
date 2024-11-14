@@ -9,5 +9,12 @@
 //
 
 
-@available(*, deprecated, renamed: "String", message: "Just use String lol")
+@available(*, unavailable, renamed: "String", message: "Just use String lol")
 public typealias git_str = String
+
+
+
+@available(*, unavailable, renamed: "StringMap")
+public typealias git_strmap = StringMap
+
+public typealias StringMap = [String : any AnyTypeProtocol]

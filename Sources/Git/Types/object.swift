@@ -12,19 +12,15 @@ import Foundation
 
 
 
-@available(*, unavailable, renamed: "Object")
-typealias git_object = Object
-public struct Object: Sendable {
-    var cached: CachedObject
-    var repo: Repository
+public struct Object: AnyStructProtocol {
+    public var cached: CachedObject
+    public var repo: Repository
 }
 
 
 
-@available(*, unavailable, renamed: "Object.Kind")
-public typealias git_object_t = Object.Kind
 public extension Object {
-    enum Kind: Int, Sendable {
+    enum Kind: Int, AnyEnumProtocol {
         
         /// Object can be any of the following
         case any =      -2
@@ -55,6 +51,12 @@ public extension Object {
 
 
 // MARK: - Migration
+
+@available(*, unavailable, renamed: "Object")
+public typealias git_object = Object
+
+@available(*, unavailable, renamed: "Object.Kind")
+public typealias git_object_t = Object.Kind
 
 @available(*, unavailable, renamed: "Object.Kind.any")
 public var GIT_OBJECT_ANY:       git_object_t { .any }

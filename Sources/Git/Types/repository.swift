@@ -10,45 +10,48 @@
 
 import Foundation
 
+@preconcurrency import SafePointer
+
+
 
 @available(*, unavailable, renamed: "Repository")
 typealias git_repository = Repository
-public struct Repository: Sendable {
-    var _odb: git_odb
-    var _refdb: git_refdb
-    var _config: git_config
-    var _index: git_index
+public struct Repository: AnyStructProtocol {
+    public var _odb: ObjectDatabase
+    public var _refdb: ReferenceDatabase
+    public var _config: Config
+    public var _index: git_index
 
-    var objects: Cache
-    var attrcache: git_attr_cache
-    var diff_drivers: git_diff_driver_registry
+    public var objects: Cache
+    public weak var attrcache: SafePointer<AttributeCache>?
+    public weak var diff_drivers: SafePointer<git_diff_driver_registry>?
 
-    var gitlink: String
-    var gitdir: String
-    var commondir: String
-    var workdir: String
-    var namespace: String
+    public var gitlink: String
+    public var gitdir: String
+    public var commondir: String
+    public var workdir: String
+    public var namespace: String
 
-    var ident_name: String
-    var ident_email: String
+    public var ident_name: String
+    public var ident_email: String
 
-    var reserved_names: git_array_t<git_str>
+    public var reserved_names: [String]
 
-    var use_env = true
-    var is_bare = true
-    var is_worktree = true
+    public var use_env = true
+    public var is_bare = true
+    public var is_worktree = true
     
-    var oid_type: Oid.Kind
+    public var oid_type: Oid.Kind
 
-    var lru_counter: UInt
+    public var lru_counter: UInt
 
-    var grafts: git_grafts
-    var shallow_grafts: git_grafts
+    public weak var grafts: SafePointer<git_grafts>?
+    public weak var shallow_grafts: SafePointer<git_grafts>?
 
-    var attr_session_key: Atomic32
+    public var attr_session_key: Atomic32
 
-    var configmap_cache: [ConfigmapItem]
-    var submodule_cache: git_strmap
+    public var configmap_cache: [ConfigmapItem]
+    public var submodule_cache: StringMap
 };
 
 
@@ -56,7 +59,7 @@ public struct Repository: Sendable {
 @available(*, unavailable, renamed: "ConfigmapItem")
 typealias git_configmap_item = ConfigmapItem
 /** Cvar cache identifiers */
-public enum ConfigmapItem: Int, Sendable {
+public enum ConfigmapItem: Int, AnyEnumProtocol {
     case autoCrlf = 0     /* core.autocrlf */
     case eol               /* core.eol */
     case symlinks          /* core.symlinks */

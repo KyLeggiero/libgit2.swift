@@ -53,6 +53,13 @@ let objectType = GIT_OBJECT_BLOB
 Swift supports methods and initializers on types, so this package does too.
 
 
+### Documentation
+
+If documentation is missing, that's because libgit2 didn't have any. Fuckers.
+
+We tried to fill in the blanks where We could.
+
+
 ### Exclusions
 
 Rote platform/runtime things which C needs (like `str.h`) were skipped because Swift already has a very good way to handle everything those handle (like `String`).

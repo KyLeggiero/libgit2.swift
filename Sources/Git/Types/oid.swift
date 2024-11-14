@@ -10,10 +10,10 @@
 
 import Foundation
 
+
+
 /// Unique identity of any object (commit, tree, blob, tag).
-@available(*, unavailable, renamed: "Oid")
-typealias git_oid = Oid
-public struct Oid: Sendable, RawRepresentable {
+public struct Oid: AnyStructProtocol, RawRepresentable, Hashable {
 
     #if GIT_EXPERIMENTAL_SHA256
     /// type of object id
@@ -41,15 +41,22 @@ public struct Oid: Sendable, RawRepresentable {
 }
 
 
-@available(*, unavailable, renamed: "Oid.Kind")
-typealias git_oid_t = Oid.Kind
+
 public extension Oid {
-    enum Kind: Int, Sendable {
+    enum Kind: Int, AnyEnumProtocol {
         case sha1 = 1
         
         #if GIT_EXPERIMENTAL_SHA256
         case sha256 = 2
         #endif
+        
+        
+        var size: UInt16 {
+            switch self {
+            case .sha1: 20
+            case .sha256: 32
+            }
+        }
     }
 }
 
@@ -69,7 +76,15 @@ public extension Oid {
 
 // MARK: - Migration
 
-extension Oid {
+@available(*, unavailable, renamed: "Oid")
+public typealias git_oid = Oid
+
+@available(*, unavailable, renamed: "Oid.Kind")
+public typealias git_oid_t = Oid.Kind
+
+
+
+public extension Oid {
     @available(*, unavailable, renamed: "rawValue")
     var id: RawValue { rawValue }
     

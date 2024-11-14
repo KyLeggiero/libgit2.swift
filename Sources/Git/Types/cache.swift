@@ -12,9 +12,7 @@ import Foundation
 
 
 
-@available(*, unavailable, renamed: "Cache")
-typealias git_cache = Cache
-public struct Cache: Sendable {
+public struct Cache: AnyStructProtocol {
     public var map: git_oidmap
     public var lock: git_rwlock
     public var used_memory: ssize_t
@@ -23,12 +21,33 @@ public struct Cache: Sendable {
 
 
 public extension Cache {
-    enum StoreKind: UInt, Sendable {
+    enum StoreKind: UInt, AnyEnumProtocol {
         case any = 0
         case raw = 1
         case parsed = 2
     }
 }
+
+
+
+public struct CachedObject: AnyStructProtocol {
+    public var oid: Oid
+    public var type: Object.Kind
+    public var storeKind: Cache.StoreKind
+    public var size: size_t
+    public var refcount: Atomic32
+}
+
+
+
+// MARK: - Migration
+
+@available(*, unavailable, renamed: "Cache")
+typealias git_cache = Cache
+
+@available(*, unavailable, renamed: "CachedObject")
+typealias git_cached_obj = CachedObject
+
 
 
 @available(*, unavailable, renamed: "Cache.StoreKind.any")
@@ -42,19 +61,10 @@ public let GIT_CACHE_STORE_PARSED = Cache.StoreKind.parsed
 
 
 
-
-@available(*, unavailable, renamed: "CachedObject")
-typealias git_cached_obj = CachedObject
-public struct CachedObject: Sendable {
-    var oid: Oid
-    var type: Object.Kind
-    var storeKind: Cache.StoreKind
-    var size: size_t
-    var refcount: Atomic32
-    
-    
+public extension CachedObject {
     @available(*, unavailable, renamed: "storeKind")
     var flags: Cache.StoreKind {
         storeKind
     }
+    
 }
