@@ -4,7 +4,7 @@
 // Written by Ky on 2024-11-11.
 // Copyright waived. No rights reserved.
 //
-// This file is part of libgit2.swift, distributed under the Free License.
+// This file is part of libgit2.swift, distributed under the Fair License.
 // For full terms, see the included LICENSE file.
 //
 
@@ -35,10 +35,10 @@ public struct Pool: AnyStructProtocol {
     public var pages: [Pool.Page]
     
     /// size of single alloc unit in bytes
-    public var item_size: size_t
+    public var itemSize: size_t
     
     /// size of page in bytes
-    public var page_size: size_t
+    public var pageSize: size_t
 }
 #else
 /// Debug chunked allocator.
@@ -56,8 +56,8 @@ public struct Pool: AnyStructProtocol {
 /// implement `git_pool__open_pages`.
 public struct Pool: AnyStructProtocol {
     public var allocations: git_vector
-    public var item_size: size_t
-    public var page_size: size_t
+    public var itemSize: size_t
+    public var pageSize: size_t
 }
 #endif
 
@@ -82,3 +82,13 @@ public typealias git_pool = Pool
 
 @available(*, unavailable, renamed: "Pool.Page")
 public typealias git_pool_page = Pool.Page
+
+
+
+public extension Pool {
+    @available(*, unavailable, renamed: "itemSize")
+    var item_size: size_t { fatalError("use itemSize") }
+    
+    @available(*, unavailable, renamed: "pageSize")
+    var page_size: size_t { fatalError("use pageSize") }
+}

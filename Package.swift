@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "libgit2.swift",
     platforms: [
-        .macOS(.v10_15),
-        .iOS(.v13),
+        .macOS(.v15),
+        .iOS(.v18),
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -17,7 +17,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/RougeWare/Swift-Safe-Pointer.git", from: "2.1.3"),
-        .package(url: "https://github.com/RougeWare/Swift-Either.git", from: "1.0.1"),
+//        .package(url: "https://github.com/RougeWare/Swift-Either.git", from: "1.0.1"),
+//        .package(url: "https://github.com/RougeWare/Swift-Simple-Logging", from: "0.5.2"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -26,7 +27,8 @@ let package = Package(
             name: "Git",
             dependencies: [
                 .product(name: "SafePointer", package: "Swift-Safe-Pointer"),
-                .product(name: "Either", package: "Swift-Either"),
+//                .product(name: "Either", package: "Swift-Either"),
+//                .product(name: "SimpleLogging", package: "Swift-Simple-Logging"),
             ],
             swiftSettings: [
                 .define("GIT_EXPERIMENTAL_SHA256"),
@@ -38,3 +40,18 @@ let package = Package(
         ),
     ]
 )
+
+
+
+#if DEBUG
+for target in package.targets {
+    target.swiftSettings = target.swiftSettings ?? []
+    target.swiftSettings?.append(
+        .unsafeFlags([
+            "-warnings-as-errors",
+//            "-Xfrontend", "-warn-concurrency",
+            "-Xfrontend", "-enable-actor-data-race-checks",
+        ])
+    )
+}
+#endif

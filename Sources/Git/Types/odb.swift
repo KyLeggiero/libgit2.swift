@@ -4,7 +4,7 @@
 // Written by Ky on 2024-11-10.
 // Copyright waived. No rights reserved.
 //
-// This file is part of libgit2.swift, distributed under the Free License.
+// This file is part of libgit2.swift, distributed under the Fair License.
 // For full terms, see the included LICENSE file.
 //
 
@@ -13,11 +13,11 @@ import Foundation
 
 
 public struct ObjectDatabase: AnyStructProtocol {
-    public var rc: RefCount
+    public var refCount: RefCount
     public var lock: Mutex  /* protects backends */
     public var options: Options
     public var backends: ArbitraryArray
-    public var own_cache: Cache
+    public var ownCache: Cache
     public var cgraph: CommitGraph
     public var do_fsync: CUnsignedInt = 1
 }
@@ -43,8 +43,17 @@ public typealias git_odb_options = ObjectDatabase.Options
 
 
 
+public extension ObjectDatabase {
+    @available(*, unavailable, renamed: "refCount")
+    var rc: git_refcount { fatalError("refCount") }
+    
+    @available(*, unavailable, renamed: "ownCache")
+    var own_cache: Cache { fatalError("ownCache") }
+}
+
+
+
 public extension ObjectDatabase.Options {
     @available(*, unavailable, renamed: "oidKind")
     var oid_type: git_oid_t { oidKind }
 }
-    

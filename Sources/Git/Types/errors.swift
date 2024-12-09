@@ -4,7 +4,7 @@
 // Written by Ky on 2024-11-09.
 // Copyright waived. No rights reserved.
 //
-// This file is part of libgit2.swift, distributed under the Free License.
+// This file is part of libgit2.swift, distributed under the Fair License.
 // For full terms, see the included LICENSE file.
 //
 
@@ -12,7 +12,7 @@ import Foundation
 
 
 
-public enum GitError: Error, AnyEnumProtocol {
+public enum GitError: Int, Error, AnyEnumProtocol {
     @available(*, deprecated, message: "Please use a semantic error instead...")
-    case generic
+    case generic = -1
 }

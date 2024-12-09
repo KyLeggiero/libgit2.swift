@@ -4,7 +4,7 @@
 // Written by Ky on 2024-11-13.
 // Copyright waived. No rights reserved.
 //
-// This file is part of libgit2.swift, distributed under the Free License.
+// This file is part of libgit2.swift, distributed under the Fair License.
 // For full terms, see the included LICENSE file.
 //
 
@@ -12,7 +12,7 @@ import Foundation
 
 
 
-public struct git_grafts: AnyStructProtocol {
+public struct Grafts: AnyStructProtocol {
     /// Map of `git_commit_graft`s
     public var commits: [git_oidmap]
 
@@ -32,7 +32,12 @@ public struct git_grafts: AnyStructProtocol {
 
 // MARK: - Migration
 
-public extension git_grafts {
+@available(*, unavailable, renamed: "Grafts")
+public typealias git_grafts = Grafts
+
+
+
+public extension Grafts {
     @available(*, unavailable, renamed: "pathHashString")
     var path_checksum: String { pathHashString }
 }

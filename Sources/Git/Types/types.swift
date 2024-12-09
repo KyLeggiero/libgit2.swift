@@ -4,7 +4,7 @@
 // Written by Ky on 2024-11-10.
 // Copyright waived. No rights reserved.
 //
-// This file is part of libgit2.swift, distributed under the Free License.
+// This file is part of libgit2.swift, distributed under the Fair License.
 // For full terms, see the included LICENSE file.
 //
 
@@ -59,6 +59,12 @@ public typealias AnyEnumProtocol = AnyTypeProtocol
 
 /// All reference types should conform to this by default. Equivalent to `void *` in libgit2
 public typealias AnyRefProtocol = any Sendable & AnyObject
+
+
+
+// MARK: - Fuck C
+
+public typealias CUnsigned = CUnsignedInt
 
 
 
