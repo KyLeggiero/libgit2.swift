@@ -14,7 +14,6 @@ import Foundation
 
 public struct ObjectDatabase: AnyStructProtocol {
     public var refCount: RefCount
-    public var lock: Mutex  /* protects backends */
     public var options: Options
     public var backends: ArbitraryArray
     public var ownCache: Cache
@@ -45,10 +44,15 @@ public typealias git_odb_options = ObjectDatabase.Options
 
 public extension ObjectDatabase {
     @available(*, unavailable, renamed: "refCount")
-    var rc: git_refcount { fatalError("refCount") }
+    var rc: git_refcount { fatalError() }
     
     @available(*, unavailable, renamed: "ownCache")
-    var own_cache: Cache { fatalError("ownCache") }
+    var own_cache: Cache { fatalError() }
+    
+    
+    
+    @available(*, unavailable, message: "Use structured concurrency instead. If you need atomic access to a value, mark it `@Volatile`.")
+    var lock: Mutex { fatalError() }
 }
 
 

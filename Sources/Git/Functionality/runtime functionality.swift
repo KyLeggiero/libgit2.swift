@@ -1,5 +1,5 @@
 //
-// runtime.swift
+// runtime functionality.swift
 //
 // Written by Ky on 2024-12-07.
 // Copyright waived. No rights reserved.
@@ -14,7 +14,7 @@ import Foundation
 
 // MARK: - Public functionality
 
-public extension Git.Runtime {
+public extension Runtime {
     
     /// The number of initializations active (the number of calls to ``initialize(initializationFunctions:)`` minus the number of calls sto ``shutdown()``).
     ///
@@ -49,7 +49,7 @@ public extension Git.Runtime {
         
         /* Only do work on a 0 -> 1 transition of the refcount */
         if 1 == thisInitCount {
-            try init_common(initializationFunctions)
+            try await init_common(initializationFunctions)
         }
         
         // The above code translates this original C code:
@@ -97,7 +97,7 @@ public extension Git.Runtime {
      * - Parameter callback: The shutdown handler callback
      */
     @InitLock
-    static func registerShutdownHook(_ callback: @escaping @Volatile () -> Void) async {
+    static func registerShutdownHook(_ callback: @escaping ShutdownFunction) async {
         await Volatile.run {
             shutdownCallbacks.append(callback)
         }
@@ -105,14 +105,14 @@ public extension Git.Runtime {
     
     
     
-    typealias InitFunction = () throws(GitError) -> Void
+    typealias InitFunction = () async throws(GitError) -> Void
     
-    typealias ShutdownFunction = () -> Void
+    typealias ShutdownFunction = @Volatile () async -> Void
 }
 
 
 
-public extension Git.Runtime {
+public extension Runtime {
     @globalActor
     final actor InitLock: GlobalActor {
         public static let shared = ActorType()
@@ -127,7 +127,7 @@ public extension Git.Runtime {
 
 
 
-internal extension Git.Runtime {
+internal extension Runtime {
     
     @Volatile
     private static var shutdownCallbacks = [ShutdownFunction]()
@@ -139,10 +139,11 @@ internal extension Git.Runtime {
     /// - Parameter initFunctions: Each of these is called in sequence. If any throws an error, that error is thrown and this function exits without executing further init functions
     ///
     /// - Throws: The first error any given init function throws
+    @InitLock
     @inline(__always)
-    static func init_common(_ initFunctions: [Git.Runtime.InitFunction]) throws(GitError) {
+    static func init_common(_ initFunctions: [InitFunction]) async throws(GitError) {
         for initFunction in initFunctions {
-            try initFunction()
+            try await initFunction()
         }
     }
     
@@ -151,9 +152,9 @@ internal extension Git.Runtime {
     ///
     /// When this returns, all shutdown callbacks will have been called and removed from the list of shutdown callbacks
     @Volatile
-    static func shutdown_common() {
+    static func shutdown_common() async {
         while let callback = shutdownCallbacks.popLast() {
-            callback()
+            await callback()
         }
 
         // The above code translates this original C code:
@@ -168,3 +169,25 @@ internal extension Git.Runtime {
         // }
     }
 }
+
+
+
+// MARK: - Migration
+
+@available(*, unavailable, renamed: "Git.Runtime.InitFunction")
+public typealias git_runtime_init_fn = () -> CInt
+
+@available(*, unavailable, renamed: "Git.Runtime.ShutdownFunction")
+public typealias git_runtime_shutdown_fn = () -> Void
+
+@available(*, unavailable, renamed: "Git.Runtime.initialize(initializationFunctions:)")
+public func git_runtime_init(_: [git_runtime_init_fn], _: size_t) -> CInt { -1 }
+
+@available(*, unavailable, renamed: "Git.Runtime.initCount")
+public func git_runtime_init_count() -> CInt { -1 }
+
+@available(*, unavailable, renamed: "Git.Runtime.shutdown()")
+public func git_runtime_shutdown() -> CInt { -1 }
+
+@available(*, unavailable, renamed: "Git.Runtime.registerShutdownHook(_:)")
+public func git_runtime_shutdown_register(_: git_runtime_shutdown_fn) -> CInt { -1 }

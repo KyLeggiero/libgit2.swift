@@ -1,6 +1,15 @@
 {
-  "originHash" : "f37c1cf40f0044ecda33b95d7537821b697b271c90e745d5d103766f664e195f",
+  "originHash" : "76f4cd166ee27b633a9d70c44627c69b89388dfc110aa1a0f465b44f9630f106",
   "pins" : [
+    {
+      "identity" : "swift-either",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Either.git",
+      "state" : {
+        "revision" : "8e38bf19ac6c09dbe8bb9489847379cfe2a9f9c8",
+        "version" : "1.0.1"
+      }
+    },
     {
       "identity" : "swift-safe-pointer",
       "kind" : "remoteSourceControl",

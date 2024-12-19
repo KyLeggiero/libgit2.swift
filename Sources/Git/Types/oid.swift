@@ -15,29 +15,23 @@ import Foundation
 /// Unique identity of any object (commit, tree, blob, tag).
 public struct Oid: AnyStructProtocol, RawRepresentable, Hashable {
 
-    #if GIT_EXPERIMENTAL_SHA256
     /// type of object id
     public var kind: Kind
-    #endif
 
     /** raw binary formatted id */
     public var rawValue: RawValue
     
     
     public init(rawValue: RawValue) {
-        #if GIT_EXPERIMENTAL_SHA256
         self.kind = .sha256
-        #endif
         self.rawValue = rawValue
     }
     
     
-    #if GIT_EXPERIMENTAL_SHA256
     public init(kind: Kind, rawValue: RawValue) {
         self.kind = .sha256
         self.rawValue = rawValue
     }
-    #endif
 }
 
 
@@ -46,9 +40,7 @@ public extension Oid {
     enum Kind: Int, AnyEnumProtocol {
         case sha1 = 1
         
-        #if GIT_EXPERIMENTAL_SHA256
         case sha256 = 2
-        #endif
         
         
         var size: UInt16 {
@@ -97,7 +89,6 @@ public extension Oid {
 @available(*, unavailable, renamed: "Oid.Kind.sha1")
 public let GIT_OID_SHA1 = Oid.Kind.sha1
 
-#if GIT_EXPERIMENTAL_SHA256
 @available(*, unavailable, renamed: "Oid.Kind.sha256")
 public let GIT_OID_SHA256 = Oid.Kind.sha256
-#endif
+

@@ -21,6 +21,12 @@ public final actor Volatile: GlobalActor {
     static func run<Value>(_ block: @Volatile () -> Value) -> Value {
         block()
     }
+    
+    
+    @Volatile
+    static func run<Value>(_ block: @Volatile () throws(GitError) -> Value) throws(GitError) -> Value {
+        try block()
+    }
 }
 
 
@@ -48,13 +54,18 @@ public typealias ThreadReadWriteLock = pthread_rwlock_t
 
 
 
+public extension Git {
+    enum TlsData {}
+}
+
+
 
 // MARK: - Migration
 
-@available(*, unavailable, message: "Simply mark the value as @Volatile")
+@available(*, unavailable, renamed: "Int32", message: "Simply mark the value as `@Volatile`")
 public typealias git_atomic32 = Never//Atomic32
 
-@available(*, unavailable, message: "Simply mark the value as @Volatile")
+@available(*, unavailable, renamed: "Int64", message: "Simply mark the value as `@Volatile`")
 public typealias git_atomic64 = Never//Atomic64
 
 @available(*, unavailable, renamed: "Mutex")

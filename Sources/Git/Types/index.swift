@@ -26,7 +26,9 @@ public struct Index: AnyStructProtocol {
     public var entriesMap: IndexMap
 
     public var deleted: ArbitraryArray /* deleted entries if readers > 0 */
-    public var readers: Atomic32 /* number of active iterators */
+    
+    @Volatile
+    public var readers: Int32 /* number of active iterators */
 
     public var oidKind: Oid.Kind
 

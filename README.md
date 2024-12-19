@@ -82,6 +82,73 @@ That is to say, anywhere in libgit2 where concurrency is offered optionally (i.e
 Obviously, since this is Swift, the long-`await`ed structured concurrency is used!
 
 
+### Error translation
+
+libgit2 signifies error conditions with functions which return negative numbers, like this:
+
+```c
+// libgit2
+
+int git_old_style(void)
+{
+    if (git_setup_operation() < 0 ||
+        git_process_operation() < 0)
+        return -1;
+
+    return 0;
+}
+```
+
+Because Swift has an error-handling system, that's used instead. So wherever a number is returned solely to communicate an error condition, the function throws instead:
+
+```swift
+// libgit2.swift
+
+func newStyle() throws(GitError) {
+    try setupOperation()
+    try processOperation()
+}
+```
+
+
+#### Side-channel errors
+
+libgit2 also includes side-channel errors. That is to say, sometimes it will return a negative number to signify that an error has occurred, and then set a global error variable.
+
+This is a common C pattern (see also: `errno`), because C does not have any built-in error handling mechanism.
+Since Swift _does_ have a built-in error-handling mechanism in the form of `throw`/`catch`/`try`/etc., libgit2.swift uses that instead. This means that the side-channel error handling is removed from this package, in favor of Swift builtin error handling.
+
+That will mostly work exactly the same. It will often include more information for recovery, as well (e.g. stack traces).
+
+However, there are some situations where it won't work the same. For example, there are situations in libgit2 where it sets that side-channel error, but _does not return a negative number_. This can be seen with the macro `GIT_ASSERT_WITH_RETVAL` and its ilk, which sav an error value to that side channel if some value is `null`, and then set that missing value to be a backup value and continue with the program instead of returning.
+
+In libgit2.swift, these situations do not set any such error, but otherwise behave the same.
+
+
+#### Fewer errors???
+
+You might start using this and notice that some functions which "throw errors" in libgit2 (e.g. return `-1`) aren't marked as `throws` in libgit2.swift.
+
+Perhaps you're worried that this means libgit2.swift ignores these errors and might crash if it encounters those branches. Worry not; this isn't dangerous, it's intentional and happy!
+As it turns out, a lot of those errors libgit2 handles simply aren't possible in Swift.
+
+For example, because libgit2 is platform-agnostic, it comes with nearly everything it needs, which means it implements most of the features it uses which are traditionally platform features. That means that things like variable-length arrays aren't used in libgit2, so all the arrays whose contents vary in amount are actually static-length arrays with some checks to see what the most-recently-added item's index is. So those will return `-1` if you try to add more values than it was compiled to handle.
+
+Swift, however, has dynamic-length arrays built-in! So no such error would be thrown. So any functions where that's the only reason it would return an error code, instead always succeed!
+
+That also means that libtit2.swift can handle some edge cases libgit2 can't, since it won't fail to handle operations which stack more items into these arrays.
+
+
+
+### Hash algorithms
+
+libgit2 uses SHA-1 as the default hash algorithm, and chooses various backends to perform hashing operations with, depending on the platform. 
+It also hides SHA-256 behind compiler flags... mostly. 
+
+This package always allows SHA-256, with no flags to disable/hide it.
+This package also chooses _only_ CommonCrypto as the hash creation backend for all hashes.
+
+
 ### Documentation
 
 If documentation is missing, that's because libgit2 didn't have any. Fuckers.
@@ -94,11 +161,35 @@ If it's like `///` then you know We rewrote that doc comment, so it's more corre
 The same (usually) goes for `/*` and `//` inline comments.
 
 
-### Exclusions
 
-Rote platform/runtime things which C needs (like `str.h`) were skipped because Swift already has a very good way to handle everything those handle (like `String`).
+## Exclusions
+
+### Runtime
+
+libgit2 implements & ships with its own runtime. libgit2.swift instead opts to use Swift's builtin runtime.
+
+This means that rote platform/runtime things which C needs (like `str.h`) were skipped because Swift already has a very good way to handle everything those handle (like `String`).
 
 Aside from that, all original (Git-specific) types from libgit2 are included here.
+
+
+### Randomness
+
+libgit2 provides public functionality to specifically seed its random number generator, allowing for deterministic pseudo-randomness.
+
+libgit2.swift does not provide this functionality, instead using Swift's builtin random subsystem (which automatically stirs/seeds the random number generator), resulting in non-deterministic pseudo-randomness (or true randomness, depending on the implementation used).
+
+
+
+## Windows
+
+No Windows support yet, sadly. Putting in a buch of the C Windows code but no tweaking it to work on Windows til We have a Windows machine to test it on.
+
+
+
+## Feedback
+
+If you feel strongly about any of the decisions which cause this package to diverge from libgit2 (for example, using platform randomness and denying deterministic PRNG), please file an issue at https://github.com/KyLeggiero/libgit2.swift/issues/new/choose
 
 
 

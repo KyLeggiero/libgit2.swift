@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/RougeWare/Swift-Safe-Pointer.git", from: "2.1.3"),
-//        .package(url: "https://github.com/RougeWare/Swift-Either.git", from: "1.0.1"),
+        .package(url: "https://github.com/RougeWare/Swift-Either.git", from: "1.0.1"),
 //        .package(url: "https://github.com/RougeWare/Swift-Simple-Logging", from: "0.5.2"),
     ],
     targets: [
@@ -27,12 +27,12 @@ let package = Package(
             name: "Git",
             dependencies: [
                 .product(name: "SafePointer", package: "Swift-Safe-Pointer"),
-//                .product(name: "Either", package: "Swift-Either"),
+                .product(name: "Either", package: "Swift-Either"),
 //                .product(name: "SimpleLogging", package: "Swift-Simple-Logging"),
             ],
             swiftSettings: [
-                .define("GIT_EXPERIMENTAL_SHA256"),
                 .define("GIT_WIN32", .when(platforms: [.windows])),
+                .define("DEBUG", .when(configuration: .debug))
             ]),
         .testTarget(
             name: "GitTests",
@@ -43,15 +43,14 @@ let package = Package(
 
 
 
-#if DEBUG
+//#if DEBUG
 for target in package.targets {
     target.swiftSettings = target.swiftSettings ?? []
     target.swiftSettings?.append(
         .unsafeFlags([
             "-warnings-as-errors",
-//            "-Xfrontend", "-warn-concurrency",
             "-Xfrontend", "-enable-actor-data-race-checks",
         ])
     )
 }
-#endif
+//#endif

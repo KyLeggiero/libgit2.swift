@@ -13,8 +13,9 @@ import Foundation
 
 
 public struct RefCount: AnyStructProtocol {
-    public var refcount: Atomic32
-    public weak var owner: (any Sendable & AnyObject)?
+    @Volatile
+    public var refcount: Int32
+    public weak var owner: AnyRefProtocol?
 }
 
 

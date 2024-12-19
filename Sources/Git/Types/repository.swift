@@ -19,35 +19,36 @@ public struct Repository: AnyStructProtocol {
     public var _refdb: ReferenceDatabase
     public var _config: Config
     public var _index: Index
-
+    
     public var objects: Cache
     public weak var attrcache: SafePointer<AttributeCache>?
     public weak var diffDrivers: SafePointer<DiffDriverRegistry>?
-
+    
     public var gitlink: String
     public var gitdir: String
     public var commondir: String
     public var workdir: String
     public var namespace: String
-
+    
     public var ident_name: String
     public var ident_email: String
-
+    
     public var reservedNames: [String]
-
+    
     public var useEnv = true
     public var isBare = true
     public var isWorktree = true
     
     public var oid_type: Oid.Kind
-
+    
     public var lru_counter: UInt
-
+    
     public weak var grafts: SafePointer<Grafts>?
     public weak var shallowGrafts: SafePointer<Grafts>?
-
-    public var attr_session_key: Atomic32
-
+    
+    @Volatile
+    public var attr_session_key: Int32
+    
     public var configmapCache: [ConfigmapItem]
     public var submoduleCache: StringMap
 };

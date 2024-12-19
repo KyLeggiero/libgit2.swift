@@ -76,5 +76,9 @@ public typealias git_time_t = IntSecondsSinceEpoch
 @available(*, unavailable, renamed: "FileSize")
 public typealias git_off_t = FileSize
 
-@available(*, unavailable, renamed: "AnyRefProtocol")
+@available(*, unavailable, renamed: "AnyRefProtocol", message: "`void *` could mean 'a pointer to any type' or 'a raw pointer'. You might consider `Data?`, `AnyObject?`, `UnsafeMutableRawPointer?` or Swift generics")
 public typealias VoidStar = AnyRefProtocol
+
+
+@available(*, unavailable, renamed: "Data", message: "`unsigned char *` means 'contiguous bytes in memory', which is exactly what `Data` means")
+public typealias UnsignedCharStar = Data

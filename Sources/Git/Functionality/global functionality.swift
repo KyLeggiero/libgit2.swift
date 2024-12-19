@@ -62,12 +62,12 @@ private extension Libgit2 {
     @MainActor
     static let init_fns: [Git.Runtime.InitFunction] = {
         let general: [Git.Runtime.InitFunction] = [
-            git_allocator_global_init,
-            git_error_global_init,
-            git_threads_global_init,
-            git_oid_global_init,
-            git_rand_global_init,
-            git_hash_global_init,
+//            git_allocator_global_init,
+            GitError.globalInit,
+//            git_threads_global_init,
+//            git_oid_global_init,
+//            git_rand_global_init,
+//            git_hash_global_init,
             git_sysdir_global_init,
             git_filter_global_init,
             git_merge_driver_global_init,
