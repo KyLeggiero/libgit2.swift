@@ -1,4 +1,4 @@
-#  Types
+# Types
 
 This folder contains just the types (structs, enums, et al) and their fields. Functionality is in the `Functionality` folder.
 
@@ -30,7 +30,7 @@ public extension NewTypename {
 }
 ```
 
-This allows you to write code with the new Swift types, even if you are used to working with the old C types (or if you're using a libgit2 tutorial/etc.).
+This allows you to write code with the new Swift types, even if you are used to working with the old C types (or if you're using a libgit2 tutorial/etc.). You'll just be notified how to use the libgit2.swift version by a compiler error.
 
 The placement in the file also reduces clutter, separating "here's what you're using" from "here's how it was done in libgit2".
 

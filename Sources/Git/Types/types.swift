@@ -18,7 +18,7 @@ public typealias IntSecondsSinceEpoch = __int64_t; /**< time in seconds from epo
 
 
 /** Time in a signature */
-public struct git_time: AnyStructProtocol {
+public struct Time: AnyStructProtocol {
     
     /// time in seconds from epoch
     public var time: IntSecondsSinceEpoch
@@ -41,7 +41,16 @@ public struct git_signature: AnyStructProtocol {
     public var email: String
     
     /// time when the action happened
-    public var when: git_time
+    public var when: Time
+}
+
+
+
+/** A type to write in a streaming fashion, for example, for filters. */
+public struct Writestream: AnyStructProtocol {
+    public var write: @Sendable (_ `self`: Self, _ buffer: String) throws(GitError) -> Void
+    public var close: @Sendable (_ `self`: Self) throws(GitError) -> Void
+    public var free: @Sendable (_ `self`: Self) -> Void
 }
 
 
@@ -51,14 +60,23 @@ public struct git_signature: AnyStructProtocol {
 /// All types in this repo should conform to this by default
 public typealias AnyTypeProtocol = Sendable
 
+/// All value types (e.g. `struct`s, `enum`s, etc.) in this repo should conform to this by default
+public typealias AnyValueTypeProtocol = AnyTypeProtocol
+
 /// All `struct`s in this repo should conform to this by default
-public typealias AnyStructProtocol = AnyTypeProtocol
+public typealias AnyStructProtocol = AnyValueTypeProtocol
 
 /// All `enum`s in this repo should conform to this by default
-public typealias AnyEnumProtocol = AnyTypeProtocol
+public typealias AnyEnumProtocol = AnyValueTypeProtocol
 
 /// All reference types should conform to this by default. Equivalent to `void *` in libgit2
-public typealias AnyRefProtocol = any Sendable & AnyObject
+public typealias AnyRefProtocol = AnyTypeProtocol & AnyObject
+
+/// All `class`es in this repo should conform to this by default
+public typealias AnyClassProtocol = AnyRefProtocol
+
+/// All `actor`s in this repo should conform to this by default
+public typealias AnyActorProtocol = AnyRefProtocol
 
 
 
@@ -70,6 +88,9 @@ public typealias CUnsigned = CUnsignedInt
 
 // MARK: - Migration
 
+@available(*, unavailable, renamed: "Time")
+public typealias git_time = Time
+
 @available(*, unavailable, renamed: "IntSecondsSinceEpoch")
 public typealias git_time_t = IntSecondsSinceEpoch
 
@@ -80,5 +101,13 @@ public typealias git_off_t = FileSize
 public typealias VoidStar = AnyRefProtocol
 
 
+@available(*, unavailable, renamed: "String", message: "`char *` is a C string")
+public typealias CharStar = UnsafePointer<CChar>
+
+
 @available(*, unavailable, renamed: "Data", message: "`unsigned char *` means 'contiguous bytes in memory', which is exactly what `Data` means")
 public typealias UnsignedCharStar = Data
+
+
+@available(*, unavailable, renamed: "Writestream")
+public typealias git_writestream = Writestream

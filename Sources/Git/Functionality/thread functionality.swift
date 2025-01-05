@@ -12,7 +12,7 @@ import Foundation
 
 
 
-//public extension Git.TlsData {
+//public extension TlsData {
 //    
 //    /**
 //     * Create a thread-local data key.  The destroy function will be
@@ -25,11 +25,9 @@ import Foundation
 //    // Analogous to `git_tlsdata_init`
 //    @available(*, deprecated, message: "I think Swift has a better way to do this")
 //    @MainActor
-//    static func onThreadExit(callback: @escaping OnThreadExit) -> Key {
+//    static func onThreadExit(callback: @escaping OnThreadExit) async throws(GitError) -> Index {
 //        values.append(.init(value: nil, onThreadExit: callback))
-//        
-//        defer { count += 1 }
-//        return .init(count)
+//        return values.count
 //        
 //        // The above code translates this original C code:
 //        //
@@ -71,17 +69,20 @@ import Foundation
 //    typealias Key = pthread_key_t
 //    
 //    typealias OnThreadExit = @Sendable (GitError.ThreadState) -> Void
+//    
+//    typealias Index = Array<Any>.Index
 //}
 //
 //
 //
-//private extension Git.TlsData {
+//private extension TlsData {
 //    
 //    @MainActor
 //    static var values: [Value] = []
 //    
 //    @MainActor
-//    static var count = 0
+//    @available(*, deprecated, renamed: "values.count")
+//    static var count: [Value].Index { values.count }
 //    
 //    
 //    
@@ -95,7 +96,7 @@ import Foundation
 
 // MARK: - Migration
 
-@available(*, unavailable, /*renamed: "Git.TlsData.onThreadExit(callback:)",*/ message: "Use @TaskLocal instead")
+@available(*, unavailable, /*renamed: "TlsData.onThreadExit(callback:)",*/ message: "Use @TaskLocal instead")
 public func git_tlsdata_init(_: inout git_tlsdata_key, _: () -> AnyRefProtocol) -> CInt { fatalError() }
 
 @available(*, unavailable, /*renamed: "Git.TlsData.subscript(key:)",*/ message: "Use @TaskLocal instead")

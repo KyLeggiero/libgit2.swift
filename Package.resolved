@@ -1,5 +1,5 @@
 {
-  "originHash" : "76f4cd166ee27b633a9d70c44627c69b89388dfc110aa1a0f465b44f9630f106",
+  "originHash" : "6ad0e68c1d9379fb52af8413e70306897a54b2ebfbdae113eb09c803ef2a1c00",
   "pins" : [
     {
       "identity" : "swift-either",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "8e38bf19ac6c09dbe8bb9489847379cfe2a9f9c8",
         "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "swift-lazy-containers",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Lazy-Containers",
+      "state" : {
+        "revision" : "360a35c98992fc53739e884fb0c48e988710fa92",
+        "version" : "4.1.0"
       }
     },
     {

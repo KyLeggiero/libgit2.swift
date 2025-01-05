@@ -44,10 +44,10 @@ public struct Index: AnyStructProtocol {
     public var names: ArbitraryArray
     public var reuc: ArbitraryArray // "resolve undo"? https://libgit2.org/libgit2/#v1.4.4/group/index/git_index_remove_bypath
 
-    public var entries_cmp_path: VectorComparator
-    public var entries_search: VectorComparator
-    public var entries_search_path: VectorComparator
-    public var reuc_search: VectorComparator
+    public var entries_cmp_path: Comparator
+    public var entries_search: Comparator
+    public var entries_search_path: Comparator
+    public var reuc_search: Comparator
 
     public var version: CUnsignedInt
 }

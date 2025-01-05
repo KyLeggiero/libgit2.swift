@@ -459,10 +459,10 @@ public var GIT_EDIRECTORY: GitError.Code { .directoryDoesNotSupportThisOperation
 public var GIT_EMERGECONFLICT: GitError.Code { .mergeConflict }
 
 @available(*, unavailable, renamed: "GitError.Code.userConfiguredCallbackRefusedToAct")
-public var GIT_EASSTHROUGH: GitError.Code { .userConfiguredCallbackRefusedToAct }
+public var GIT_PASSTHROUGH: GitError.Code { .userConfiguredCallbackRefusedToAct }
 
 @available(*, unavailable, renamed: "GitError.Code.iterationComplete")
-public var GIT_ETEROVER: GitError.Code { .iterationComplete }
+public var GIT_TEROVER: GitError.Code { .iterationComplete }
 
 @available(*, unavailable, renamed: "GitError.Code.__internal__retry")
 public var GIT_EETRY: GitError.Code { .__internal__retry }
@@ -483,10 +483,10 @@ public var GIT_EOWNER: GitError.Code { .objectNotOwnedByUser }
 public var GIT_EIMEOUT: GitError.Code { .operationTimedOut }
 
 @available(*, unavailable, renamed: "GitError.Code.noChanges")
-public var GIT_EUNCHANGED: GitError.Code { .noChanges }
+public var GIT_UNCHANGED: GitError.Code { .noChanges }
 
 @available(*, unavailable, renamed: "GitError.Code.unsupportedOperation")
-public var GIT_ENOTSUPPORTED: GitError.Code { .unsupportedOperation }
+public var GIT_NOTSUPPORTED: GitError.Code { .unsupportedOperation }
 
 @available(*, unavailable, renamed: "GitError.Code.readOnly")
-public var GIT_EREADONLY: GitError.Code { .readOnly }
+public var GIT_READONLY: GitError.Code { .readOnly }

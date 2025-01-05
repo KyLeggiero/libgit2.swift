@@ -17,9 +17,9 @@ public extension GitError {
     @MainActor
     @available(*, deprecated, message: "This is likely unnecessary in Swift (seems all it did was deallocate things)")
     static func globalInit() async {
-        // TODO: "Do we need to register on-Task-exit hooks here?
+        // TODO: Do we need to register on-Task-exit hooks here?
 //        tls_key = Git.TlsData.onThreadExit(callback: threadstate_free)
-        // TODO: "Do we need to register on-shutdown hooks here?
+        // TODO: Do we need to register on-shutdown hooks here?
 //        await Git.Runtime.registerShutdownHook(git_error_global_shutdown)
     }
 }

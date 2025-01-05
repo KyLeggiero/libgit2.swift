@@ -12,5 +12,15 @@ import Foundation
 
 
 
+private extension UnsafeMutableRawPointer {
+    func typed<Value>() -> UnsafeMutablePointer<Value> {
+        .init(OpaquePointer(self))
+    }
+}
+
+
+
+// MARK: - Migration
+
 @available(*, unavailable, message: "No need for allocators in Swift")
 func git_allocator_global_init() -> CInt { fatalError() }

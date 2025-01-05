@@ -23,8 +23,10 @@ public enum Checkout: AnyEnumProtocol {
 
 
 public extension Checkout {
-    enum Strategy: UInt32, OptionSet, CaseIterable, AnyEnumProtocol {
-
+    enum Strategy: UInt32, AutoOptionSet, AnyEnumProtocol {
+        
+        case __empty = 0
+        
         /**
          * Allow safe updates that cannot overwrite uncommitted data.
          * If the uncommitted changes don't conflict with the checked out files,
@@ -111,12 +113,6 @@ public extension Checkout {
         case updateSubmodules =           0b0000_0000__0000_0000__1000_0000__0000_0000 //(1 << 16)
         /** Recursively checkout submodules if HEAD moved in super repo (NOT IMPLEMENTED) */
         case updateSubmodules_ifChanged = 0b0000_0000__0000_0001__0000_0000__0000_0000 //(1 << 17)
-        
-        
-        public init(rawValue: UInt32) {
-            self = Self.allCases.first { $0.rawValue == rawValue }
-                ?? .dryRun // Another default might be better, but the C codebase _did_ say "default is a dry run"
-        }
     }
 }
 

@@ -31,6 +31,7 @@ public final actor Volatile: GlobalActor {
 
 
 
+@available(*, deprecated, renamed: "Volatile", message: "Better to use Swift's builtin @globalActor approach for exclusive access")
 public typealias ThreadReadWriteLock = pthread_rwlock_t
 
 
@@ -54,9 +55,7 @@ public typealias ThreadReadWriteLock = pthread_rwlock_t
 
 
 
-public extension Git {
-    enum TlsData {}
-}
+public enum TlsData {}
 
 
 

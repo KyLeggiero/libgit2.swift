@@ -1,6 +1,6 @@
 #  libgit2.swift
 
-A reimplementation of libgit2 in Swift.
+A reimplementation of [libgit2](https://github.com/libgit2/libgit2) in Swift.
 
 Based on libgit2 1.8.4 because that was the most recent release when We started writing it.
 
@@ -149,6 +149,60 @@ This package always allows SHA-256, with no flags to disable/hide it.
 This package also chooses _only_ CommonCrypto as the hash creation backend for all hashes.
 
 
+
+### Strings
+
+libgit2.swift uses the Swift native `String` type wherever the concpet of a text string exists in libgit.
+Anywhere there's' a `char *`, a `git_str`, or any other text string concept, is replaced with `String`.
+
+That means that all strings throughout this library support full Unicode and all the other fancy things Swift strings support.
+
+That means that some places where libgit2 might handle Unicode strings (e.g. UTF-8) could either fail or produce unexpected/undefined behavior, but in libgit2.swift they work correctly. For example, if a filename has characters which use multiple bytes (like 한), libgit2 would miscount the number of bytes as the nubmer of characters, but libgit2.swift correctly counts the number of characters.
+
+
+
+### Runtime
+
+libgit2 implements & ships with its own runtime. libgit2.swift instead opts to use Swift's builtin runtime.
+
+This means that rote platform/runtime things which C needs (like arrays, allocating/freeing memory, etc.) were skipped because Swift already has a very good way to handle everything those handle.
+
+Aside from that, all original (Git-specific) types from libgit2 are included here, mostly with Swifty names.
+
+
+
+### Copy-on-Write
+
+libgit2 (and most C code) uses pointers to pass around a value without having to copy it each time. 
+
+Swift has a runtime subsystem to allow this to happen with pure-value-types (like `struct`s), providing the semantics & behavior of copying it each time but not actually copying until one of those is written to.
+
+A non-pointer value in C (like `struct my_struct`) can be thought of as a value type, and a pointer to that value (like `my_struct*`) can be thought of as a reference type.
+
+In Swift, value vs reference are implemented as distinct kinds of types. Values are `enum`/`struct`/etc. and references are `class`/`actor`.
+
+This library foregoes using reference types unless absolutely necessary.
+
+
+
+### Randomness
+
+libgit2 provides public functionality to specifically seed its random number generator, allowing for deterministic pseudo-randomness.
+
+libgit2.swift does not provide this functionality, instead using Swift's builtin random subsystem (which automatically stirs/seeds the random number generator), resulting in non-deterministic pseudo-randomness (or true randomness, depending on the implementation used).
+
+
+
+### Deprecation
+
+There are parts of libgit2 which are deprecated (e.g. under `git2/deprecated.h` andor marked `GIT_DEPRECATE_HARD`).
+
+These are not included in libgit2.swift, under the assumption that they were deprecated with good reason and that the maintainers of libgit2 would like to remove them.
+
+That is to say, anything wrapped in a `#ifdef GIT_DEPRECATE_HARD` is included, and anything wrapped in `#ifndef GIT_DEPRECATE_HARD` is excluded from this library.
+
+
+
 ### Documentation
 
 If documentation is missing, that's because libgit2 didn't have any. Fuckers.
@@ -162,34 +216,15 @@ The same (usually) goes for `/*` and `//` inline comments.
 
 
 
-## Exclusions
-
-### Runtime
-
-libgit2 implements & ships with its own runtime. libgit2.swift instead opts to use Swift's builtin runtime.
-
-This means that rote platform/runtime things which C needs (like `str.h`) were skipped because Swift already has a very good way to handle everything those handle (like `String`).
-
-Aside from that, all original (Git-specific) types from libgit2 are included here.
-
-
-### Randomness
-
-libgit2 provides public functionality to specifically seed its random number generator, allowing for deterministic pseudo-randomness.
-
-libgit2.swift does not provide this functionality, instead using Swift's builtin random subsystem (which automatically stirs/seeds the random number generator), resulting in non-deterministic pseudo-randomness (or true randomness, depending on the implementation used).
-
-
-
 ## Windows
 
-No Windows support yet, sadly. Putting in a buch of the C Windows code but no tweaking it to work on Windows til We have a Windows machine to test it on.
+No Windows support yet, sadly. Putting in a bunch of placeholder Windows code but won't be able to make sure it compiles & runs on Windows til We have a Windows machine to test it on.
 
 
 
 ## Feedback
 
-If you feel strongly about any of the decisions which cause this package to diverge from libgit2 (for example, using platform randomness and denying deterministic PRNG), please file an issue at https://github.com/KyLeggiero/libgit2.swift/issues/new/choose
+If you have an improvement idea, or just feel strongly about any of the decisions which cause this package to diverge from libgit2 (for example, using platform randomness and denying deterministic PRNG), please file an issue at https://github.com/KyLeggiero/libgit2.swift/issues/new/choose
 
 
 
