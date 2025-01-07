@@ -30,28 +30,21 @@ public extension Filter {
 private extension Filter {
     func crlf_check(
         src: Source,
-        attr_values: String)
-    throws(GitError) -> AnyRefProtocol?
+        attr_values: inout String?)
+    throws(GitError) -> AnyTypeProtocol?
     {
-        let ca: crlf_attrs
+        let ca = try convert_attrs(attr_values: &attr_values, src: src)
         
-        convert_attrs(&ca, attr_values, src)
-        
-        if (ca.crlf_action == GIT_CRLF_BINARY) {
+        guard .binary != ca.crlf_action else {
             throw .init(code: .userConfiguredCallbackRefusedToAct)
         }
         
-        *payload = git__malloc(sizeof(ca));
-        GIT_ERROR_CHECK_ALLOC(*payload);
-        memcpy(*payload, &ca, sizeof(ca));
-
-        return 0
+        return ca
     }
     
     
     
     enum Crlf: AnyEnumProtocol {
-        case undefined
         case binary
         case text
         case textInput
@@ -68,7 +61,7 @@ private struct crlf_attrs: AnyStructProtocol {
     var attr_action: CInt = .init()
     
     /** the core.autocrlf setting */
-    var crlf_action: CInt = .init()
+    var crlf_action: Filter.Crlf? = .none
     
     var auto_crlf: CInt = .init()
     var safe_crlf: CInt = .init()
@@ -79,7 +72,7 @@ private struct crlf_attrs: AnyStructProtocol {
 
 private func convert_attrs(
 //    ca: crlf_attrs,
-    attr_values: String?,
+    attr_values: inout String?,
     src: Filter.Source)
 throws(GitError) -> crlf_attrs
 {
@@ -150,7 +143,7 @@ throws(GitError) -> crlf_attrs
 private typealias git_crlf_t = Filter.Crlf
 
 
-@available(*, unavailable, renamed: "Filter.Crlf.undefined")
+@available(*, unavailable, renamed: "Filter.Crlf.none")
 private var GIT_CRLF_UNDEFINED: Filter.Crlf { fatalError() }
 
 @available(*, unavailable, renamed: "Filter.Crlf.binary")

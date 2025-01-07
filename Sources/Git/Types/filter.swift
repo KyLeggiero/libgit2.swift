@@ -205,10 +205,14 @@ public extension Filter {
      * callback can use it.  If a filter allocates and assigns a value to the
      * `payload`, it will need a `cleanup` callback to free the payload.
      */
-    typealias CheckFunction = @Sendable (
-        _ `self`: Filter,
+    typealias CheckFunction = @Sendable (_ `self`: Filter) -> _CheckFunction_Method
+    
+    /// The signature of the check function if it's a method on a type (ignoring how `self` looks)
+    ///
+    /// This is returned by a ``CheckFunction``
+    typealias _CheckFunction_Method = @Sendable (
         _ src: Filter.Source,
-        _ attr_values: inout String) throws(GitError) -> AnyTypeProtocol?
+        _ attr_values: inout String?) throws(GitError) -> AnyTypeProtocol?
     
     
     
@@ -221,8 +225,7 @@ public extension Filter {
      * with that data, the `git_writestream` will then perform the filter
      * translation and stream the filtered data out to the `next` location.
      */
-    typealias StreamFunction = @Sendable (
-        _ `self`: Filter,
+    typealias StreamFunction = @Sendable (_ `self`: Filter) -> (
         _ src: Filter.Source,
         _ next: Writestream)
     throws(GitError) -> (writestream: Writestream, payload: AnyTypeProtocol?)
@@ -238,7 +241,7 @@ public extension Filter {
      * state, use this callback to free that payload and release resources
      * as required.
      */
-    typealias CleanupFunction = @Sendable (_ `self`: Filter) -> AnyTypeProtocol
+    typealias CleanupFunction = @Sendable (_ `self`: Filter) -> () -> AnyTypeProtocol
 }
 
 

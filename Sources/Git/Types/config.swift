@@ -14,8 +14,20 @@ import Foundation
 
 public struct Config: AnyStructProtocol {
     public var refCount: RefCount
-    public var readers: ArbitraryArray
-    public var writers: ArbitraryArray
+    public var readers: [AnyTypeProtocol]
+    public var writers: [AnyTypeProtocol]
+}
+
+
+
+/**
+ * Config var type
+ */
+public enum git_configmap_t: CInt, AnyEnumProtocol {
+    case `false` = 0
+    case `true` = 1
+    case int32
+    case string
 }
 
 
@@ -31,3 +43,20 @@ public extension Config {
     @available(*, unavailable, renamed: "refCount")
     var rc: git_refcount { refCount }
 }
+
+
+@available(*, unavailable, renamed: "git_configmap_t.false")
+public var GIT_CONFIGMAP_FALSE: git_configmap_t { fatalError() }
+
+@available(*, unavailable, renamed: "git_configmap_t.true")
+public var GIT_CONFIGMAP_TRUE: git_configmap_t { fatalError() }
+
+@available(*, unavailable, renamed: "git_configmap_t.int32")
+public var GIT_CONFIGMAP_INT32: git_configmap_t { fatalError() }
+
+@available(*, unavailable, renamed: "git_configmap_t.string")
+public var GIT_CONFIGMAP_STRING: git_configmap_t { fatalError() }
+
+
+
+

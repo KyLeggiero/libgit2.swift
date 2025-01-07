@@ -189,6 +189,9 @@ public func git_str_joinpath(_: inout git_str?, _: CharStar, _: CharStar) -> CIn
 @available(*, unavailable, message: "This is equivalent to `= nil")
 public func git_str_clear(_: inout git_str?) -> CInt { fatalError() }
 
+@available(*, unavailable, renamed: "String.count", message: "just use .count")
+public func git_str_len(_: inout git_str?) -> size_t { fatalError() }
+
 
 public extension String {
     @available(*, unavailable, message: "This is identical to Swift = assignment if the new string isn't Optional")

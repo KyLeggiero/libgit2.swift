@@ -17,7 +17,7 @@ import Foundation
 public struct Repository: AnyStructProtocol {
     public var _odb: ObjectDatabase
     public var _refdb: ReferenceDatabase
-    public var _config: Config
+    public var _config: Config?
     public var _index: Index
     
     public var objects: Cache
@@ -49,6 +49,7 @@ public struct Repository: AnyStructProtocol {
     @Volatile
     public var attr_session_key: Int32
     
+    @Volatile
     public var configmapCache: [ConfigmapItem]
     public var submoduleCache: StringMap
 };
@@ -74,6 +75,85 @@ public enum ConfigmapItem: Int, AnyEnumProtocol {
     case logPaths          /* core.longpaths */
     
     case cacheMax
+}
+
+
+
+/**
+ * Configuration map value enumerations
+ *
+ * These are the values that are actually stored in the configmap cache,
+ * instead of their string equivalents. These values are internal and
+ * symbolic; make sure that none of them is set to `-1`, since that is
+ * the unique identifier for "not cached"
+ */
+public struct ConfigmapValue: RawRepresentable, AnyStructProtocol {
+    public var rawValue: CInt
+    
+    public init(rawValue: RawValue) {
+        self.rawValue = rawValue
+    }
+}
+
+
+
+public extension ConfigmapValue {
+    
+    /* The value hasn't been loaded from the cache yet */
+    static let GIT_CONFIGMAP_NOT_CACHED = Self(rawValue: -1)
+
+    /* core.safecrlf: false, 'fail', 'warn' */
+    static let GIT_SAFE_CRLF_FALSE = Self(rawValue: 0)
+    static let GIT_SAFE_CRLF_FAIL = Self(rawValue: 1)
+    static let GIT_SAFE_CRLF_WARN = Self(rawValue: 2)
+
+    /* core.autocrlf: false, true, 'input; */
+    static let GIT_AUTO_CRLF_FALSE = Self(rawValue: 0)
+    static let GIT_AUTO_CRLF_TRUE = Self(rawValue: 1)
+    static let GIT_AUTO_CRLF_INPUT = Self(rawValue: 2)
+    static let GIT_AUTO_CRLF_DEFAULT = GIT_AUTO_CRLF_FALSE
+
+    /* core.eol: unset, 'crlf', 'lf', 'native' */
+    static let GIT_EOL_UNSET = Self(rawValue: 0)
+    static let GIT_EOL_CRLF = Self(rawValue: 1)
+    static let GIT_EOL_LF = Self(rawValue: 2)
+#if GIT_WIN32
+    static let GIT_EOL_NATIVE = GIT_EOL_CRLF
+#else
+    static let GIT_EOL_NATIVE = GIT_EOL_LF
+#endif
+    static let GIT_EOL_DEFAULT = GIT_EOL_NATIVE
+
+    /* core.symlinks: bool */
+    static let GIT_SYMLINKS_DEFAULT = git_configmap_t.true
+    /* core.ignorecase */
+    static let GIT_IGNORECASE_DEFAULT = git_configmap_t.false
+    /* core.filemode */
+    static let GIT_FILEMODE_DEFAULT = git_configmap_t.true
+    /* core.ignorestat */
+    static let GIT_IGNORESTAT_DEFAULT = git_configmap_t.false
+    /* core.trustctime */
+    static let GIT_TRUSTCTIME_DEFAULT = git_configmap_t.true
+    /* core.abbrev */
+    static let GIT_ABBREV_DEFAULT = Self(rawValue: 7)
+    /* core.precomposeunicode */
+    static let GIT_PRECOMPOSE_DEFAULT = git_configmap_t.false
+    /* core.safecrlf */
+    static let GIT_SAFE_CRLF_DEFAULT = git_configmap_t.false
+    /* core.logallrefupdates */
+    static let GIT_LOGALLREFUPDATES_FALSE = git_configmap_t.false
+    static let GIT_LOGALLREFUPDATES_TRUE = git_configmap_t.true
+    static let GIT_LOGALLREFUPDATES_UNSET = Self(rawValue: 2)
+    static let GIT_LOGALLREFUPDATES_ALWAYS = Self(rawValue: 3)
+    static let GIT_LOGALLREFUPDATES_DEFAULT = GIT_LOGALLREFUPDATES_UNSET
+    /* core.protectHFS */
+    static let GIT_PROTECTHFS_DEFAULT = git_configmap_t.false
+    /* core.protectNTFS */
+    static let GIT_PROTECTNTFS_DEFAULT = git_configmap_t.true
+    /* core.fsyncObjectFiles */
+    static let GIT_FSYNCOBJECTFILES_DEFAULT = git_configmap_t.false
+    /* core.longpaths */
+    static let GIT_LONGPATHS_DEFAULT = git_configmap_t.false
 }
 
 
