@@ -160,6 +160,22 @@ That means that all strings throughout this library support full Unicode and all
 That means that some places where libgit2 might handle Unicode strings (e.g. UTF-8) could either fail or produce unexpected/undefined behavior, but in libgit2.swift they work correctly. For example, if a filename has characters which use multiple bytes (like 한), libgit2 would miscount the number of bytes as the nubmer of characters, but libgit2.swift correctly counts the number of characters.
 
 
+#### String Processing
+
+String (and character) processing functions in libgit2.swift are entirely conducted with Swift's builtin mechanisms.
+
+This diverges from libgit2, which uses Unix C string processing (or implements its own for Windows).
+
+The consequence of this is that libgit2.swift will handle strings in a more universally-correct way (read: Unicode compliant, etc.), but will diverge from how libgit2 handles strings. This will result in fewer internal crashes, but might result in breaking behvior.
+
+For example, libgit2 might\* only change a character to lower/uppercase if it's an ASCII latin letter (A~Z and a~z), whereas libgit2.swift applies standard Unicode case changes for all applicable Unicode codepoints.
+
+For example, when you ask libgit2 to make the string `"Voilà"` all-caps, it will give you `"VOILà"`, but libgit2.swift will give you `"VOILÀ"`.
+
+
+> \*"might" because this is the explicit behavior when compiled for Windows, but when compiling for Unix, it's up to the specific operating system what that behavior will be.
+
+
 
 ### Runtime
 

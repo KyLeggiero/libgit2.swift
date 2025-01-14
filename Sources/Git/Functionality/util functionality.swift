@@ -9,6 +9,9 @@
 //
 
 import Foundation
+//import OptionalTools
+
+
 
 public func _getEnv(name: String) throws(GitError) -> String {
 #if GIT_WIN32
@@ -88,114 +91,107 @@ public func git__parse_bool(_ value: String?) throws(GitError) -> Bool {
 }
 
 
-public func git__strntol64(nptr: String, nptr_len: size_t, endptr: inout String, base: CInt)
-throws(GitError) -> __int64_t{
-    let p: String = nptr
-    let n: __int64_t = 0
-    let nn: __int64_t
-    let v: __int64_t
-    let c: CInt
-    let ovfl: CInt = 0
-    let neg: CInt = 0
-    let ndig: CInt = 0
-    var nptr_len = nptr_len
+
+public extension FixedWidthInteger {
     
-    
-    /*
-     * White space
-     */
-    while nptr_len != 0, git__isspace(p.first) {
-        p += 1
-        nptr_len -= 1
-    }
-    
-    if !nptr_len {
-        goto Return;
-    }
-    
-    /*
-     * Sign
-     */
-    if (*p == '-' || *p == '+') {
-        if (*p == '-')
-            neg = 1;
-        p++;
-        nptr_len--;
-    }
-
-    if (!nptr_len)
-        goto Return;
-
-    /*
-     * Automatically detect the base if none was given to us.
-     * Right now, we assume that a number starting with '0x'
-     * is hexadecimal and a number starting with '0' is
-     * octal.
-     */
-    if (base == 0) {
-        if (*p != '0')
-            base = 10;
-        else if (nptr_len > 2 && (p[1] == 'x' || p[1] == 'X'))
-            base = 16;
-        else
-            base = 8;
-    }
-
-    if (base < 0 || 36 < base)
-        goto Return;
-
-    /*
-     * Skip prefix of '0x'-prefixed hexadecimal numbers. There is no
-     * need to do the same for '0'-prefixed octal numbers as a
-     * leading '0' does not have any impact. Also, if we skip a
-     * leading '0' in such a string, then we may end up with no
-     * digits left and produce an error later on which isn't one.
-     */
-    if (base == 16 && nptr_len > 2 && p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
-        p += 2;
-        nptr_len -= 2;
-    }
-
-    /*
-     * Non-empty sequence of digits
-     */
-    for (; nptr_len > 0; p++,ndig++,nptr_len--) {
-        c = *p;
-        v = base;
-        if ('0'<=c && c<='9')
-            v = c - '0';
-        else if ('a'<=c && c<='z')
-            v = c - 'a' + 10;
-        else if ('A'<=c && c<='Z')
-            v = c - 'A' + 10;
-        if (v >= base)
-            break;
-        v = neg ? -v : v;
-        if (git__multiply_int64_overflow(&nn, n, base) || git__add_int64_overflow(&n, nn, v)) {
-            ovfl = 1;
-            /* Keep on iterating until the end of this number */
-            continue;
+    /// Parses the given string to this integer type, in the style of libgit2.
+    ///
+    /// libgit2 allows explicitly specifying a base, and also allows implying a base by setting that to `0`.
+    /// If it cannot process the given string into an integer for any reason, then it throws an error.
+    /// If the given base is `0`, then it attempts to parse the string based on how it starts:
+    /// - `0x` and `0X` parse as hexadecimal (e.g. `"0xC0FFEE"` is parsed as 12,648,430)
+    /// - A non-zero starting number parses as decimal (e.g. `"420"` is parsed as 420)
+    /// - All other strings starting with `0` are parsed as octal (e.g. `01234` is parsed as 668)
+    /// - If `base` is greater than 32, an error is thrown
+    ///
+    /// The libgit2 function also automatically ignores preceding whitespace, and returns the pointer to the character where it stopped parsing.
+    ///
+    /// This function mimics that behavior, and also includes the following:
+    /// - Allows the base to be `nil`, which means the same as `0`
+    /// - If the base is `1`, this considers that the same as `0` (because unary is, practically speaking, never used)
+    /// - Strings starting with `0o` parse as octal
+    /// - Strings starting with `0b` parse as binary (e.g. `"0b01000101"` is parsed as 69)
+    /// - The same code works for all integer types, not just 64- and 32-bit signed binary integers
+    /// - Automatically ignores both preceding & trailing whitespace
+    ///
+    /// This function also opts to not return the location where it stopped parsing. If you need that functionality, please file an issue at
+    /// https://github.com/KyNorthstar/libgit2.swift/issues/new/choose
+    ///
+    ///
+    /// - Parameters:
+    ///   - gitNumberString: The string to parse into a number
+    ///   - base:            The base (radix) of the number.
+    ///                      Must be `nil` or in `0...32`
+    ///                      If `nil`, `0`, or `1`, then this attempts to detect the base automatically.
+    ///
+    /// - Throws:
+    ///   - A `GitError` if the given number string couldn't be parsed into a number
+    init(gitNumberString: String, base: UInt8?) throws(GitError) { // TODO: Test rigorously
+        func parse() throws(GitError) -> Self? {
+            
+            let gitNumberString = gitNumberString.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            func match<Output>(_ regex: Regex<Output>) throws(GitError) -> Output? {
+                try mapError(try regex.firstMatch(in: gitNumberString)?.output, GitError.fromIntegerParseError)
+            }
+            
+            
+            if let base, base > 1 {
+                guard base <= 32 else { throw .couldNotParseStringToInteger() }
+                return .init(gitNumberString, radix: .init(base))
+            }
+            else {
+                let radix: Int
+                let parseString: String
+                
+                if !gitNumberString.hasPrefix("0") {
+                    parseString = gitNumberString
+                    radix = 10
+                }
+                else if let (_, sign, hexString) = try match(/([+-])0[xX](.+)/) {
+                    parseString = .init(sign + hexString)
+                    radix = 0x10
+                }
+                else if let (_, sign, octString) = try match(/([+-])0o?(.+)/) {
+                    parseString = .init(sign + octString)
+                    radix = 0o10
+                }
+                else if let (_, sign, binString) = try match(/([+-])0b(.+)/) {
+                    parseString = .init(sign + binString)
+                    radix = 0b10
+                }
+                else {
+                    parseString = gitNumberString
+                    radix = 0o10 // not what We would do if making this Ourself, but this is how libgit2 does it
+                }
+                
+                return .init(parseString, radix: radix)
+            }
+        }
+        
+        if let parsed = try parse() {
+            self = parsed
+        }
+        else {
+            throw .couldNotParseStringToInteger()
         }
     }
-
-Return:
-    if (ndig == 0) {
-        git_error_set(GIT_ERROR_INVALID, "failed to convert string to long: not a number");
-        return -1;
-    }
-
-    if (endptr)
-        *endptr = p;
-
-    if (ovfl) {
-        git_error_set(GIT_ERROR_INVALID, "failed to convert string to long: overflow error");
-        return -1;
-    }
-
-    *result = n;
-    return 0;
 }
 
+
+
+private extension GitError {
+    static func fromIntegerParseError(_ thrownError: any Error) -> Self {
+        .couldNotParseStringToInteger(cause: thrownError)
+    }
+    
+    
+    static func couldNotParseStringToInteger(cause: (any Error)? = nil) -> Self {
+        .init(message: "failed to convert string to long \(nil == cause ? ": not a number" : "")",
+              kind: .invalid,
+              cause: cause)
+    }
+}
 
 
 
@@ -207,3 +203,10 @@ public func ARRAY_SIZE(_ array: [any Any]) -> Int { fatalError() }
 
 @available(*, unavailable, renamed: "_getEnv(name:)")
 public func git__getenv(_: inout git_str, _: String) -> CInt { fatalError() }
+
+
+@available(*, unavailable, renamed: "Int64.init(gitNumberString:base:)")
+public func git__strntol64(_: inout __int64_t, _: CharStar, _: size_t, _: inout CharStar, _: CInt) -> CInt { fatalError() }
+
+@available(*, unavailable, renamed: "Int32.init(gitNumberString:base:)")
+public func git__strntol32(_: inout __int32_t, _: CharStar, _: size_t, _: inout CharStar, _: CInt) -> CInt { fatalError() }

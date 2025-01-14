@@ -406,5 +406,5 @@ private extension SysDir.Dir {
 @available(*, unavailable, renamed: "SysDir.Dir")
 private typealias git_sysdir__dir = SysDir.Dir
 
-@available(*, unavailable, renamed: "SysDir.globalInit()")
+@available(*, unavailable, renamed: "SysDir.initialize()")
 public func git_sysdir_global_init() -> CInt { fatalError() }

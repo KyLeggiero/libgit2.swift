@@ -23,18 +23,25 @@ public struct GitError: Error, AnyStructProtocol {
     let kind: Kind?
     let code: Code?
     let systemError: CInt?
+    let cause: (any Error)?
     
     init(message: String? = nil,
          kind: Kind? = nil,
          code: Code? = nil,
-         systemError: CInt? = nil)
+         systemError: CInt? = nil,
+         cause: (any Error)? = nil)
     {
         self.message = message
         self.kind = kind
         self.code = code
         self.systemError = systemError
+        self.cause = cause
     }
 }
+
+
+
+// TODO: LocalizedError
 
 
 
@@ -42,7 +49,7 @@ public extension GitError {
     
     @available(*, deprecated, message: "Please describe the error in some way...")
     init() {
-        self.init(message: nil, kind: nil, code: nil)
+        self = .generic
     }
     
     

@@ -13,6 +13,7 @@ import Foundation
 
 
 internal extension String {
+    
     /// Converts this String structure to an array of bytes in UTF-8 format
     ///
     /// Also allows you to write new UTF-8 strings using an array of bytes
@@ -40,3 +41,11 @@ internal extension String {
 //        }
 //    }
 //}
+
+
+
+public extension CharacterSet {
+    func contains(_ character: Character) -> Bool {
+        character.unicodeScalars.contains(where: self.contains)
+    }
+}

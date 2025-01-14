@@ -55,13 +55,28 @@ func git__isprint(_ c: int) -> bool
 }
 
 #else
-//#define git__tolower(a) tolower((unsigned char)(a))
-//#define git__toupper(a) toupper((unsigned char)(a))
+@available(*, deprecated, renamed: "Character.lowercased()", message: "Use Swift's builtin text processing")
+@inline(__always) public func git__tolower(_ a: Character) -> String { a.lowercased() }
 
-//#define git__isalpha(a)  (!!isalpha((unsigned char)(a)))
-//#define git__isdigit(a)  (!!isdigit((unsigned char)(a)))
-//#define git__isalnum(a)  (!!isalnum((unsigned char)(a)))
-//#define git__isspace(a)  (!!isspace((unsigned char)(a)))
-//#define git__isxdigit(a) (!!isxdigit((unsigned char)(a)))
-//#define git__isprint(a)  (!!isprint((unsigned char)(a)))
+@available(*, deprecated, renamed: "Character.uppercased()", message: "Use Swift's builtin text processing")
+@inline(__always) public func git__toupper(_ a: Character) -> String { a.uppercased() }
+
+
+@available(*, deprecated, renamed: "Character.isLetter", message: "Use Swift's builtin text processing")
+@inline(__always) public func git__isalpha(_ a: Character) -> Bool { a.isLetter }
+
+@available(*, deprecated, renamed: "CharacterSet.decimalDigits.contains", message: "Use Swift's builtin text processing")
+@inline(__always) public func git__isdigit(_ a: Character) -> Bool { CharacterSet.decimalDigits.contains(a) }
+
+@available(*, deprecated, renamed: "CharacterSet.alphanumerics.contains", message: "Use Swift's builtin text processing")
+@inline(__always) public func git__isalnum(_ a: Character) -> Bool { CharacterSet.alphanumerics.contains(a) }
+
+@available(*, deprecated, renamed: "CharacterSet.whitespacesAndNewlines.contains", message: "Use Swift's builtin text processing")
+@inline(__always) public func git__isspace(_ a: Character) -> Bool { CharacterSet.whitespacesAndNewlines.contains(a) }
+
+@available(*, deprecated, renamed: "Character.isHexDigit", message: "Use Swift's builtin text processing")
+@inline(__always) public func git__isxdigit(_ a: Character) -> Bool { a.isHexDigit }
+
+@available(*, deprecated, renamed: "CharacterSet.controlCharacters.inverted.contains", message: "Use Swift's builtin text processing")
+@inline(__always) public func git__isprint(_ a: Character) -> Bool { !CharacterSet.controlCharacters.contains(a) }
 #endif
