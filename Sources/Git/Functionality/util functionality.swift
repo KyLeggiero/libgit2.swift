@@ -121,71 +121,106 @@ public extension FixedWidthInteger {
     /// - Parameters:
     ///   - gitNumberString: The string to parse into a number
     ///   - base:            The base (radix) of the number.
-    ///                      Must be `nil` or in `0...32`
+    ///                      Must be `nil` or in `0...32`.
     ///                      If `nil`, `0`, or `1`, then this attempts to detect the base automatically.
     ///
     /// - Throws:
     ///   - A `GitError` if the given number string couldn't be parsed into a number
-    init(gitNumberString: String, base: UInt8?) throws(GitError) { // TODO: Test rigorously
-        func parse() throws(GitError) -> Self? {
+    // TODO: Test rigorously
+    static func parse(gitNumberString: String, base: UInt8?)
+    -> ParseResult {
+        @inline(__always) let untrimmedNumberString = gitNumberString
+        let trimmedNumberString = untrimmedNumberString.trimmingPrefixAndSuffix(while: CharacterSet.whitespacesAndNewlines.contains)
+        
+        guard !trimmedNumberString.isEmpty else {
+            return ParseResult(parsed: .failure(.couldNotParseStringToInteger()),
+                               parseRange: untrimmedNumberString.indexRange)
+        }
+        
+        
+        @inline(__always)
+        func match<Output>(_ regex: Regex<Output>) -> Output? {
+            // According to the documentation,
+            // > The `firstMatch(in:)` method can throw an error if this regex includes a transformation closure that throws an error.
+            // Since this regex doesn't, it won't. We can safely ignore this error if the Regex API honors its contract
             
-            let gitNumberString = gitNumberString.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            func match<Output>(_ regex: Regex<Output>) throws(GitError) -> Output? {
-                try mapError(try regex.firstMatch(in: gitNumberString)?.output, GitError.fromIntegerParseError)
+            do {
+                return try regex.firstMatch(in: trimmedNumberString)?.output
             }
-            
-            
-            if let base, base > 1 {
-                guard base <= 32 else { throw .couldNotParseStringToInteger() }
-                return .init(gitNumberString, radix: .init(base))
-            }
-            else {
-                let radix: Int
-                let parseString: String
-                
-                if !gitNumberString.hasPrefix("0") {
-                    parseString = gitNumberString
-                    radix = 10
-                }
-                else if let (_, sign, hexString) = try match(/([+-])0[xX](.+)/) {
-                    parseString = .init(sign + hexString)
-                    radix = 0x10
-                }
-                else if let (_, sign, octString) = try match(/([+-])0o?(.+)/) {
-                    parseString = .init(sign + octString)
-                    radix = 0o10
-                }
-                else if let (_, sign, binString) = try match(/([+-])0b(.+)/) {
-                    parseString = .init(sign + binString)
-                    radix = 0b10
-                }
-                else {
-                    parseString = gitNumberString
-                    radix = 0o10 // not what We would do if making this Ourself, but this is how libgit2 does it
-                }
-                
-                return .init(parseString, radix: radix)
+            catch {
+                print("Regex API violated its contract", error)
+                return nil
             }
         }
         
-        if let parsed = try parse() {
-            self = parsed
+        
+        @inline(__always)
+        func parse(base: Int, sign: Substring?, digits: Substring) -> ParseResult {
+            let range = (sign?.startIndex ?? digits.startIndex)..<digits.endIndex
+            
+            if let number = Self.init((sign ?? "") + digits, radix: base) {
+                return ParseResult(parsed: .success(number), parseRange: range)
+            }
+            else {
+                return ParseResult(parsed: .failure(.couldNotParseStringToInteger()), parseRange: range)
+            }
+        }
+        
+        
+        @inline(__always)
+        let validCharacters = CharacterSet(charactersIn: "+-").union(.alphanumerics)
+        
+        @inline(__always)
+        let lastAlphanumericIndex = untrimmedNumberString.lastIndex(where: validCharacters.contains)
+            ?? untrimmedNumberString.startIndex
+        
+        let (_, sign, baseIndicator, digits): (Substring, Substring?, Substring?, Substring)
+        
+        guard let m = match(/(?<sign>[+-])?(?<baseIndicator>0[Xbox]?)?(?<digits>[A-Za-z0-9]+)/) else {
+            
+            return ParseResult(parsed: .failure(.couldNotParseStringToInteger()),
+                               parseRange: trimmedNumberString.startIndex ..< lastAlphanumericIndex)
+        }
+        
+        (_, sign, baseIndicator, digits) = m
+        
+        if let base,
+           0 != base {
+            guard base < 32 else {
+                return ParseResult(parsed: .failure(.couldNotParseStringToInteger()),
+                                   parseRange: trimmedNumberString.startIndex ..< lastAlphanumericIndex)
+            }
+            
+            return parse(base: .init(base), sign: sign, digits: digits)
         }
         else {
-            throw .couldNotParseStringToInteger()
+            switch baseIndicator {
+            case nil:
+                return parse(base: 10, sign: sign, digits: digits)
+                
+            case "0X", "0x":
+                return parse(base: 0x10, sign: sign, digits: digits)
+                
+            case "0b":
+                return parse(base: 0b10, sign: sign, digits: digits)
+                
+            case "0", "0o":
+                fallthrough
+                
+            default:
+                return parse(base: 0o10, sign: sign, digits: digits)
+            }
         }
     }
+    
+    
+    
+    typealias ParseResult = (parsed: Result<Self, GitError>, parseRange: Range<String.Index>)
 }
 
 
 
 private extension GitError {
-    static func fromIntegerParseError(_ thrownError: any Error) -> Self {
-        .couldNotParseStringToInteger(cause: thrownError)
-    }
-    
-    
     static func couldNotParseStringToInteger(cause: (any Error)? = nil) -> Self {
         .init(message: "failed to convert string to long \(nil == cause ? ": not a number" : "")",
               kind: .invalid,
@@ -205,8 +240,8 @@ public func ARRAY_SIZE(_ array: [any Any]) -> Int { fatalError() }
 public func git__getenv(_: inout git_str, _: String) -> CInt { fatalError() }
 
 
-@available(*, unavailable, renamed: "Int64.init(gitNumberString:base:)")
+@available(*, unavailable, renamed: "Int64.parse(gitNumberString:base:)")
 public func git__strntol64(_: inout __int64_t, _: CharStar, _: size_t, _: inout CharStar, _: CInt) -> CInt { fatalError() }
 
-@available(*, unavailable, renamed: "Int32.init(gitNumberString:base:)")
+@available(*, unavailable, renamed: "Int32.parse(gitNumberString:base:)")
 public func git__strntol32(_: inout __int32_t, _: CharStar, _: size_t, _: inout CharStar, _: CInt) -> CInt { fatalError() }

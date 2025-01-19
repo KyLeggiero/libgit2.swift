@@ -93,7 +93,7 @@ private extension Libgit2 {
 
 // MARK: - Migration
 
-@available(*, unavailable, renamed: "Libgit2.init()")
+@available(*, unavailable, renamed: "Libgit2.initialize()")
 public func git_libgit2_init() -> CInt { -1 }
 
 @available(*, unavailable, renamed: "Libgit2.shutdown()")

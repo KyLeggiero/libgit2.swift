@@ -25,9 +25,10 @@ public struct GitError: Error, AnyStructProtocol {
     let systemError: CInt?
     let cause: (any Error)?
     
+    
     init(message: String? = nil,
          kind: Kind? = nil,
-         code: Code? = nil,
+         code: Code? = .__generic,
          systemError: CInt? = nil,
          cause: (any Error)? = nil)
     {
@@ -66,10 +67,10 @@ public extension GitError.Code {
 
 
 
-public extension GitError.Kind {
-    @available(*, deprecated, message: "Please use a semantic error instead...")
-    static var generic: Self { .__generic }
-}
+//public extension GitError.Kind {
+//    @available(*, deprecated, message: "Please use a semantic error instead...")
+//    static var generic: Self { .__generic }
+//}
 
 
 
@@ -77,7 +78,7 @@ public extension GitError.Kind {
 public extension GitError {
     /** Error classes */
     enum Kind: Int, Error, AnyEnumProtocol {
-        case __generic  = -1
+//        case __generic  = -1
         
         case noMemory   = 1
         case os         = 2

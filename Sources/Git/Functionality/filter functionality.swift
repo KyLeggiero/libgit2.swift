@@ -15,6 +15,7 @@ import Foundation
 public extension Filter {
     
     @MainActor
+    // Analogous to `git_filter_global_init`
     static func initialize() async throws(GitError) {
         
         await Registry.SyncLock.run {

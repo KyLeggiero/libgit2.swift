@@ -22,7 +22,7 @@ struct Checkout {
         var opts = git_checkout_options.GIT_CHECKOUT_OPTIONS_INIT
         opts.checkout_strategy = GIT_CHECKOUT_SAFE
 
-        git_libgit2_init()
+        Libgit2.initialize()
 
         handleError(git_revparse_single(&treeish, repo, "master"));
         handleError(git_checkout_tree(repo, treeish, &opts));

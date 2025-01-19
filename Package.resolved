@@ -1,5 +1,5 @@
 {
-  "originHash" : "4ed260c39477d8066e048e515fe58c4da5c52ad4318c2f6a28c1a9d745af1068",
+  "originHash" : "f156436b11b5b3c102b916858703841941df42ba6a7c8dba1281e6cbc09d7f37",
   "pins" : [
     {
       "identity" : "swift-either",
@@ -26,6 +26,24 @@
       "state" : {
         "revision" : "b02158c4563570293cccb9dbe606f066b1b69bf2",
         "version" : "1.2.0"
+      }
+    },
+    {
+      "identity" : "swift-range-tools",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Range-Tools.git",
+      "state" : {
+        "revision" : "8efcac712d0bd765ac903cb9fd27cc49b6b4ce58",
+        "version" : "1.2.1"
+      }
+    },
+    {
+      "identity" : "swift-safe-collection-access",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Safe-Collection-Access",
+      "state" : {
+        "revision" : "a2a2f8773f5e85804be785177fa3bf1abeb37dea",
+        "version" : "2.2.2"
       }
     },
     {
