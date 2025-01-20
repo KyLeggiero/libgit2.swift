@@ -67,7 +67,7 @@ where Thrown: Error,
 
 internal func mapError<Thrown, Mapped, Returned>(
     _ thrower: @autoclosure () throws(Thrown) -> Returned,
-    _ mapper: @Sendable (Thrown) -> Mapped)
+    _ mapper: (Thrown) -> Mapped)
 throws(Mapped) -> Returned
 where Thrown: Error,
     Mapped: Error
@@ -79,6 +79,42 @@ where Thrown: Error,
         throw mapper(error)
     }
 }
+
+
+
+internal func mapError<NewError, Returned>(
+    _ thrower: @autoclosure () throws -> Returned,
+    _ alternative: () -> NewError)
+throws(NewError) -> Returned
+where NewError: Error
+{
+    do {
+        return try thrower()
+    }
+    catch {
+        throw alternative()
+    }
+}
+
+
+
+//infix operator ?! : NilCoalescingPrecedence
+//
+//
+//
+//func ?! <NewError, Returned>(
+//    _ thrower: @autoclosure () throws -> Returned,
+//    _ alternative: @autoclosure () throws(NewError) -> Void)
+//throws(NewError) -> Returned
+//where NewError: Error
+//{
+//    do {
+//        return try thrower()
+//    }
+//    catch {
+//        try alternative()
+//    }
+//}
 
 
 

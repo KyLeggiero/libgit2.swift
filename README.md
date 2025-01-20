@@ -6,7 +6,7 @@ Based on libgit2 1.8.4 because that was the most recent release when We started 
 
 Written by Ky, who doesn't recommend you use this. Instead, they recommend you use their package [Gitsune](https://GitHub.com/KyLeggiero/Gitsune), which is a more-Swiftey wrapper around this package.
 
-This package attempts to be a 1-to-1 Swift rewrite of libgit2, and as such it doesn't attempt to introduce any sugar or other refinements. Gitsune's goal is to be fully Swift-first, rather than just a rewrite.
+This package attempts to be a 1-to-1 Swift rewrite of libgit2, and as such it doesn't attempt to introduce any sugar or other refinements (outside basic things like using Swift's error system). Gitsune's goal is to be fully Swift-first, rather than just a rewrite.
 
 
 

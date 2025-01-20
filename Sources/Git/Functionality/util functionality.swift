@@ -65,29 +65,31 @@ public func _getEnv(name: String) throws(GitError) -> String {
 
 
 
-/// Parse a string value as a boolean, just like libgit does, just like Core Git does.
-///
-/// Valid values for true are: `"true"`, `"yes"`, `"on"`, and `nil`
-/// Valid values for false are: `"false"`, `"no"`, `"off"`, and any string beginning with NUL (U+0000)
-///
-/// Parsing `nil` and NUL-starting strings this way are undocumented features of libgit2 1.8.4
-public func git__parse_bool(_ value: String?) throws(GitError) -> Bool {
-    /* A missing value means true */   // WHY THO?!?!?! – Ky, 2025-01-06
-    if (value == nil ||
-        0 == strcasecmp(value, "true") ||
-        0 == strcasecmp(value, "yes") ||
-        0 == strcasecmp(value, "on")) {
-        return true
+public extension Bool {
+    /// Parse a string value as a boolean, just like libgit does, just like Core Git does.
+    ///
+    /// Valid values for true are: `"true"`, `"yes"`, `"on"`, and `nil`
+    /// Valid values for false are: `"false"`, `"no"`, `"off"`, and any string beginning with NUL (U+0000)
+    ///
+    /// Parsing `nil` and NUL-starting strings this way are undocumented features of libgit2 1.8.4
+    static func parse(gitBoolString value: String?) throws(GitError) -> Bool {
+        /* A missing value means true */   // WHY THO?!?!?! – Ky, 2025-01-06
+        if (value == nil ||
+            0 == strcasecmp(value, "true") ||
+            0 == strcasecmp(value, "yes") ||
+            0 == strcasecmp(value, "on")) {
+            return true
+        }
+        if let value,
+           (0 == strcasecmp(value, "false") ||
+            0 == strcasecmp(value, "no") ||
+            0 == strcasecmp(value, "off") ||
+            "\u{0}" == value.first) {
+            return false
+        }
+        
+        throw .init(code: .__generic)
     }
-    if let value,
-       (0 == strcasecmp(value, "false") ||
-        0 == strcasecmp(value, "no") ||
-        0 == strcasecmp(value, "off") ||
-        "\u{0}" == value.first) {
-        return false
-    }
-
-    throw .init(kind: .__generic)
 }
 
 
@@ -245,3 +247,6 @@ public func git__strntol64(_: inout __int64_t, _: CharStar, _: size_t, _: inout 
 
 @available(*, unavailable, renamed: "Int32.parse(gitNumberString:base:)")
 public func git__strntol32(_: inout __int32_t, _: CharStar, _: size_t, _: inout CharStar, _: CInt) -> CInt { fatalError() }
+
+@available(*, unavailable, renamed: "Bool.parse(gitNumberString:)")
+public func git__parse_bool(_: inout CInt, _: CharStar) -> CInt { fatalError() }

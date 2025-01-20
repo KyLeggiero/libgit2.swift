@@ -18,18 +18,24 @@ public extension Config {
     
     /// Parse a string value as a bool.
     ///
-    /// Valid values for true are: 'true', 'yes', 'on', 1 or any number different from 0.
-    /// Valid values for false are: 'false', 'no', 'off', 0.
-    /// Follows the same rules as ``FixedWidthInteger/parse(gitNumberString:base:)``.
+    /// Valid values for true:
+    /// - "true", "yes", "on"
+    /// - 1 or any non-zero number
     ///
-    /// - Parameter value: value to parse
-    /// - Returns: The result of parsing
-    /// - Throws: A descriptive error if parsing failed
+    /// Valid values for false:
+    /// - "false", "no", "off"
+    /// - 0
+    ///
+    /// When parsing as a number, this also follows the same rules as ``FixedWidthInteger/parse(gitNumberString:base:)``.
+    ///
+    /// - Parameter value: The string to parse
+    /// - Returns: The parsed boolean value
+    /// - Throws: `GitError` if the string cannot be parsed as a boolean
     // Analogous to `git_config_parse_bool`
     static func parseBool(_ value: String) throws(GitError) -> Bool {
         do {
             return try (try? git__parse_bool(value))
-                ?? (try (git_config_parse_int32(value) != 0))
+                ?? (try (parseInt32(value) != 0))
         }
         catch {
             throw .init(message: "failed to parse '\(value)' as a boolean value", kind: .config, code: .__generic)
@@ -53,10 +59,27 @@ public extension Config {
     }
     
     
-    func git_config_parse_int64(_ value: String) throws(GitError) -> __int64_t {
+    /// Parse a string value as an Int64.
+    ///
+    /// An optional value suffix of `'k'`, `'m'`, or `'g'` will cause the value to be multiplied by `1024`, `1048576`, or `1073741824` prior to output.
+    ///
+    /// For example, `"123k"` parses as `125952`.
+    ///
+    /// This also follows the same rules as ``FixedWidthInteger/parse(gitNumberString:base:)``.
+    ///
+    /// - Parameter value: value to parse
+    /// - Returns: the result of the parsing
+    /// - Throws: an error if parsing failed
+    static func parseInt64(_ value: String) throws(GitError) -> __int64_t { // TODO: Test
+        @inline(__always)
+        var failParseError: GitError {
+            GitError(message: "failed to parse '\(value)' as an integer", kind: .config, code: .__generic)
+        }
+        
+        
         let parseResult = Int64.parse(gitNumberString: value, base: nil)
         let num_end = value[orNil: parseResult.parseRange.upperBound]
-        var num = try parseResult.parsed.get()
+        var num = try parseResult.parsed.mapError({ _ in failParseError }).get()
         
         switch (num_end) {
         case "g", "G":
@@ -72,7 +95,7 @@ public extension Config {
             
             /* check that that there are no more characters after the
              * given modifier suffix */
-            guard value.indices.contains(value.index(after: parseResult.parseRange.upperBound)) else {
+            guard value.endIndex <= parseResult.parseRange.upperBound else {
                 throw GitError(
                     message: "Integer string was a valid integer, but contained characters after the digits & SI suffix",
                     code: GitError.Code.__generic)
@@ -84,28 +107,37 @@ public extension Config {
             return num
             
         default:
-            throw GitError(message: "failed to parse '\(value)' as an integer", kind: .config, code: .__generic)
+            throw failParseError
         }
     }
     
     
-    static func git_config_parse_int32(_ value: String) throws(GitError) -> __int32_t {
-        var tmp: __int64_t
-        var truncate: __int32_t
+    /// Parse a string value as an Int32.
+    ///
+    /// An optional value suffix of `'k'`, `'m'`, or `'g'` will cause the value to be multiplied by 1024, 1048576, or 1073741824 prior to output.
+    ///
+    /// For example, `"123k"` parses as `125952`.
+    ///
+    /// This also follows the same rules as ``FixedWidthInteger/parse(gitNumberString:base:)``.
+    ///
+    /// - Parameter value: value to parse
+    /// - Returns: the result of the parsing
+    /// - Throws An error if parsing failed.
+    static func parseInt32(_ value: String) throws(GitError) -> __int32_t {
+        @inline(__always)
+        var failParseError: GitError {
+            GitError(message: "failed to parse '\(value)' as a 32-bit integer", kind: .config, code: .__generic)
+        }
         
-        if (git_config_parse_int64(&tmp, value) < 0)
-            goto fail_parse;
         
-        truncate = tmp & 0xFFFFFFFF;
-        if (truncate != tmp)
-            goto fail_parse;
+        let tmp = try mapError(try parseInt64(value)) { failParseError }
         
-        *out = truncate;
-        return 0;
+        let truncate = __int32_t(truncatingIfNeeded: tmp)
+        guard truncate == tmp else {
+            throw failParseError
+        }
         
-    fail_parse:
-        git_error_set(GIT_ERROR_CONFIG, "failed to parse '%s' as a 32-bit integer", value ? value : "(null)");
-        return -1;
+        return truncate
     }
 }
 
@@ -116,3 +148,7 @@ public extension Config {
 
 @available(*, unavailable, renamed: "Config.parseBool")
 public func git_config_parse_bool(_: inout CInt, _: CharStar) -> CInt { fatalError() }
+@available(*, unavailable, renamed: "Config.parseInt32")
+public func git_config_parse_int32(_:inout __int32_t, _: CharStar) -> CInt { fatalError() }
+@available(*, unavailable, renamed: "Config.parseInt64")
+public func git_config_parse_int64(_:inout __int64_t, _: CharStar) -> CInt { fatalError() }
