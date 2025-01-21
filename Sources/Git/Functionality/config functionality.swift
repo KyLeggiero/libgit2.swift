@@ -34,7 +34,7 @@ public extension Config {
     // Analogous to `git_config_parse_bool`
     static func parseBool(_ value: String) throws(GitError) -> Bool {
         do {
-            return try (try? git__parse_bool(value))
+            return try (try? .parse(gitBoolString: value))
                 ?? (try (parseInt32(value) != 0))
         }
         catch {
@@ -70,6 +70,7 @@ public extension Config {
     /// - Parameter value: value to parse
     /// - Returns: the result of the parsing
     /// - Throws: an error if parsing failed
+    // Analogous to `git_config_parse_int64`
     static func parseInt64(_ value: String) throws(GitError) -> __int64_t { // TODO: Test
         @inline(__always)
         var failParseError: GitError {
@@ -123,6 +124,7 @@ public extension Config {
     /// - Parameter value: value to parse
     /// - Returns: the result of the parsing
     /// - Throws An error if parsing failed.
+    // Analogous to `git_config_parse_int32`
     static func parseInt32(_ value: String) throws(GitError) -> __int32_t {
         @inline(__always)
         var failParseError: GitError {

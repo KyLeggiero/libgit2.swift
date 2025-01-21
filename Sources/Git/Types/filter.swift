@@ -50,7 +50,7 @@ public struct Filter: AnyStructProtocol {
      * `stream` or `apply` functions will not be invoked and the
      * contents will be passed through unmodified.
      */
-    public var check: CheckFunction
+    public var _checkFunction_static: CheckFunction
     
     public var reserved: AnyTypeProtocol? = nil
     
@@ -61,13 +61,79 @@ public struct Filter: AnyStructProtocol {
      * perform the filter translation and stream the filtered data
      * out to the `next` location.
      */
-    public var stream: StreamFunction
+    public var _streamFunction_static: StreamFunction
 
     /** Called when the system is done filtering for a file. */
-    public var cleanup: CleanupFunction
+    public var _cleanupFunction_static: CleanupFunction
+    
+    
+    init(version: CUnsignedInt,
+         attributes: String,
+         initialize: InitFunction? = nil,
+         shutdown: @escaping ShutdownFunction,
+         check: @escaping CheckFunction,
+         stream: @escaping StreamFunction,
+         cleanup: @escaping CleanupFunction)
+    {
+        self.version = version
+        self.attributes = attributes
+        self.initialize = initialize
+        self.shutdown = shutdown
+        self._checkFunction_static = check
+        self._streamFunction_static = stream
+        self._cleanupFunction_static = cleanup
+    }
     
     
     public static var version: CUnsignedInt { 1 }
+}
+
+
+
+public extension Filter {
+    
+    /// Called to determine whether the filter should be invoked for a given file.
+    /// 
+    /// If this function throws ``GitError/Code/userConfiguredCallbackRefusedToAct`` then the `stream` or `apply` functions will not be invoked and the contents will be passed through unmodified.
+    ///
+    /// - Parameters:
+    ///   - source:          <#source description#>
+    ///   - attributeValues: <#attributeValues description#>
+    ///
+    /// - Returns: <#Return description#>
+    ///
+    /// - Throws: <#Error description#>
+    func check(source: Source, attributeValues: inout String?) throws(GitError) -> AnyTypeProtocol? {
+        try _checkFunction_static(self)(source, &attributeValues)
+    }
+    
+    
+    /// Performs the data filtering.
+    /// 
+    /// Filters data in a streaming manner. This function will provide a ``Writestream`` that the original data will be written to;
+    /// with that data, the ``Writestream`` will then perform the filter translation and stream the filtered data out to the `next` location.
+    ///
+    /// - Parameters:
+    ///   - source:  <#source description#>
+    ///   - payload: <#payload description#>
+    ///   - next:    <#next description#>
+    ///
+    /// - Returns: <#Return description#>
+    ///
+    /// - Throws: <#Error description#>
+    func stream(source: Source, payload: inout AnyTypeProtocol?, next: Writestream) throws(GitError) -> Writestream {
+        try _streamFunction_static(self)(source, payload, next)
+    }
+    
+    
+    /// Callback to clean up after filtering has been applied
+    ///
+    /// Invoked after the filter has been applied.  If the `check`, `apply`, or `stream` functions allocated a `payload` to keep per-source filter state, use this to free that payload and release resources as required.
+    ///
+    /// - Returns: <#Return description#>
+    func cleanup() -> AnyTypeProtocol? {
+        _cleanupFunction_static(self)
+    }
 }
 
 
@@ -207,7 +273,7 @@ public extension Filter {
      */
     typealias CheckFunction = @Sendable (_ `self`: Filter) -> _CheckFunction_Method
     
-    /// The signature of the check function if it's a method on a type (ignoring how `self` looks)
+    /// The signature of the check function when it's a method on a type (rather than being generated with a `Filter` explicitly passed as `self`)
     ///
     /// This is returned by a ``CheckFunction``
     typealias _CheckFunction_Method = @Sendable (
@@ -225,10 +291,16 @@ public extension Filter {
      * with that data, the `git_writestream` will then perform the filter
      * translation and stream the filtered data out to the `next` location.
      */
-    typealias StreamFunction = @Sendable (_ `self`: Filter) -> (
+    typealias StreamFunction = @Sendable (_ `self`: Filter) -> _StreamFunction_Method
+    
+    /// The signature of the stream function when it's a method on a type (rather than being generated with a `Filter` explicitly passed as `self`)
+    ///
+    /// This is returned by a ``StreamFunction``
+    typealias _StreamFunction_Method = @Sendable (
         _ src: Filter.Source,
+        _ payload: AnyTypeProtocol?,
         _ next: Writestream)
-    throws(GitError) -> (writestream: Writestream, payload: AnyTypeProtocol?)
+    throws(GitError) -> Writestream
     
     
     
@@ -241,7 +313,12 @@ public extension Filter {
      * state, use this callback to free that payload and release resources
      * as required.
      */
-    typealias CleanupFunction = @Sendable (_ `self`: Filter) -> () -> AnyTypeProtocol
+    typealias CleanupFunction = @Sendable (_ `self`: Filter) -> _CleanupFunction_Method
+    
+    /// The signature of the cleanup function when it's a method on a type (rather than being generated with a `Filter` explicitly passed as `self`)
+    ///
+    /// This is returned by a ``CleanupFunction``
+    typealias _CleanupFunction_Method = @Sendable () -> AnyTypeProtocol?
 }
 
 
