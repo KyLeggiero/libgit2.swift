@@ -15,7 +15,7 @@ import Foundation
 public struct ObjectDatabase: AnyStructProtocol {
     public var refCount: RefCount
     public var options: Options
-    public var backends: ArbitraryArray
+    public var backends: [AnyTypeProtocol]
     public var ownCache: Cache
     public var cgraph: CommitGraph
     public var do_fsync: CUnsignedInt = 1
@@ -28,6 +28,13 @@ public extension ObjectDatabase {
         var version: CUnsignedInt
         var oidKind: Oid.Kind
     }
+}
+
+
+
+public struct git_odb_object {
+    public var cached: CachedObject
+    public var buffer: AnyTypeProtocol?
 }
 
 

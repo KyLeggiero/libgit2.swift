@@ -164,6 +164,22 @@ public extension String {
         //     return 0;
         // }
     }
+    
+    
+    /// This treats `buffer` as a data buffer and appends `stringToAppend` at the end of it.
+    ///
+    /// This is different from `buffer.append(stringToAppend)` because it performs additional checks and guarantees that `buffer` can act as a buffer.
+    /// For example, this explicitly treats the `buffer`'s capacity separately from its character `count`.
+    ///
+    /// - Parameters:
+    ///   - buffer:         The buffer which will have the given new data appended to its end
+    ///   - stringToAppend: The new data to append to the end of the buffer
+    // Analogous to `git_buf_put``
+    static func bufferAppend(buffer: inout String, stringToAppend: String) {
+        guard !stringToAppend.isEmpty else { return }
+        buffer.reserveCapacity(buffer.count + stringToAppend.count)
+        buffer.append(stringToAppend)
+    }
 }
 
 
@@ -177,6 +193,9 @@ public var GIT_STR_INIT: git_str { .init() }
 @available(*, unavailable, renamed: "git_str_dispose(string:)", message: "Evaluate whether this is necessary in Swift (original was mostly deallocation)")
 public func git_str_dispose(_: inout git_str?) { fatalError() }
 
+@available(*, unavailable, renamed: "String.bufferAppend(buffer:stringToAppend:)")
+public func git_str_put(_: inout git_str, _: CharStar, _: size_t) throws(GitError) { fatalError() }
+
 @available(*, unavailable, renamed: "String.init(checking:expressionLabel:)")
 public func git_str_puts(_: inout git_str?, _: CharStar?) -> CInt { fatalError() }
 
@@ -186,7 +205,7 @@ public func git_str_join(_: inout git_str?, _: CChar, _: CharStar, _: CharStar) 
 @available(*, unavailable, renamed: "init(joiningPath:withPathComponent:)")
 public func git_str_joinpath(_: inout git_str?, _: CharStar, _: CharStar) -> CInt { fatalError() }
 
-@available(*, unavailable, message: "This is equivalent to `= nil")
+@available(*, unavailable, message: "This is equivalent to `.removeAll(keepingCapacity: true)``")
 public func git_str_clear(_: inout git_str?) -> CInt { fatalError() }
 
 @available(*, unavailable, renamed: "String.count", message: "just use .count")

@@ -42,7 +42,7 @@ public struct Filter: AnyStructProtocol {
     public var initialize: InitFunction?
 
     /** Called when the filter is removed or unregistered from the system. */
-    public var shutdown: ShutdownFunction
+    public var shutdown: ShutdownFunction?
 
     /**
      * Called to determine whether the filter should be invoked for a
@@ -70,7 +70,7 @@ public struct Filter: AnyStructProtocol {
     init(version: CUnsignedInt,
          attributes: String,
          initialize: InitFunction? = nil,
-         shutdown: @escaping ShutdownFunction,
+         shutdown: ShutdownFunction? = nil,
          check: @escaping CheckFunction,
          stream: @escaping StreamFunction,
          cleanup: @escaping CleanupFunction)
@@ -176,11 +176,12 @@ public extension Filter {
     /**
      * Filtering options
      */
+    // Analogous to `<#original_libgit_func#>`
     struct Options: AnyStructProtocol {
         public var version: CUnsignedInt
 
         /** See `git_filter_flag_t` above */
-        public let flags: Flag
+        public var flags: Flag
 
         public var reserved: AnyTypeProtocol? = nil
 
@@ -188,7 +189,7 @@ public extension Filter {
          * The commit to load attributes from, when
          * `GIT_FILTER_ATTRIBUTES_FROM_COMMIT` is specified.
          */
-        public var attributeLodingCommitId: Oid
+        public var attributeLodingCommitId: Oid?
     }
     
     
@@ -245,9 +246,9 @@ public extension Filter {
      * will be called once at most and should release resources as needed.
      * This may be called even if the `initialize` callback was not made.
      *
-     * Typically this function will free the `git_filter` object itself.
+     * Typically this function will free the `Filter` object itself.
      */
-    typealias ShutdownFunction = @Sendable () -> Filter
+    typealias ShutdownFunction = @Sendable (_: inout Filter) -> Void
     
     
     
@@ -319,6 +320,14 @@ public extension Filter {
     ///
     /// This is returned by a ``CleanupFunction``
     typealias _CleanupFunction_Method = @Sendable () -> AnyTypeProtocol?
+    
+    
+    
+    typealias WriteFunction = @Sendable (_ `self`: Filter) -> _WriteFunction_Method
+    
+    typealias _WriteFunction_Method = @Sendable (_: AnyTypeProtocol?, _ temp_buf: String, _ output: String, _: Filter.Source) throws(GitError) -> Void
+    
+    typealias LegacyWriteFunction = WriteFunction
 }
 
 

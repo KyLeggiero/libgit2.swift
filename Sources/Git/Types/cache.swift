@@ -30,6 +30,7 @@ public extension Cache {
 
 
 
+// Analogous to `git_cached_obj`
 public struct CachedObject: AnyStructProtocol {
     public var oid: Oid
     public var type: Object.Kind

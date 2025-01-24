@@ -13,8 +13,13 @@ import Foundation
 
 
 public typealias FileSize = __int64_t;
-public typealias IntSecondsSinceEpoch = __int64_t; /**< time in seconds from epoch */
 
+/** time in seconds from epoch */
+// Analogous to `git_time_t`
+public typealias IntSecondsSinceEpoch = __int64_t;
+
+/** The maximum size of an object */
+public typealias git_object_size_t =  __uint64_t
 
 
 /** Time in a signature */
@@ -47,11 +52,43 @@ public struct git_signature: AnyStructProtocol {
 
 
 /** A type to write in a streaming fashion, for example, for filters. */
-public struct Writestream: AnyStructProtocol {
-    public var write: @Sendable (_ `self`: Self, _ buffer: String) throws(GitError) -> Void
-    public var close: @Sendable (_ `self`: Self) throws(GitError) -> Void
-    public var free: @Sendable (_ `self`: Self) -> Void
+public protocol Writestream: AnyTypeProtocol, ~Copyable {
+    mutating func write(data: String) throws(GitError) -> Void
+    mutating func close() throws(GitError) -> Void
+    
+    
+    
+    associatedtype Base: Writestream = Self
+    
+    
+    
+    typealias WriteFunction = @Sendable (_ `self`: inout Base) -> _WriteFunction_Method
+    typealias _WriteFunction_Method = @Sendable (_ data: String) throws(GitError) -> Void
+    
+    typealias CloseFunction = @Sendable (_ `self`: inout Base) -> _CloseFunction_Method
+    typealias _CloseFunction_Method = @Sendable () throws(GitError) -> Void
+    
+    typealias FreeFunction = @Sendable (_ `self`: inout Base) -> _FreeFunction_Method
+    typealias _FreeFunction_Method = @Sendable () -> Void
 }
+
+
+
+public extension Writestream {
+    mutating func close() throws(GitError) -> Void { }
+    
+    @available(*, deprecated, message: "These operations should be performed in `deinit`")
+    mutating func free() -> Void { }
+}
+
+
+
+///// The most barebones implementation of a ``Writestream``
+//public struct CustomWritestream<Base: Writestream>: Writestream, AnyStructProtocol {
+//    public var writeFunction: Base.WriteFunction
+//    public var closeFunction: Base.CloseFunction?
+//    public var freeFunction: Base.FreeFunction?
+//}
 
 
 
