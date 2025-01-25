@@ -55,6 +55,19 @@ public struct SelfSortingArray<Element: AnyTypeProtocol>: AnyStructProtocol {
 
 
 
+extension SelfSortingArray: ExpressibleByArrayLiteral {
+    public init(arrayLiteral elements: Element...) {
+        if elements.isEmpty {
+            self.init(contents: [])
+        }
+        else {
+            self.init(contents: elements)
+        }
+    }
+}
+
+
+
 public extension SelfSortingArray {
     enum Flags: CUnsignedInt, AutoOptionSet, AnyStructProtocol {
         case __empty = 0

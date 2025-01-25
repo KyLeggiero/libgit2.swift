@@ -146,12 +146,29 @@ public extension Filter {
      * A filter source represents a file/blob to be processed
      */
     struct Source: AnyStructProtocol {
-        public var repo: Repository
-        public let path: String
-        public var oid: Oid?  // zero/nil if unknown (which is likely)
-        public var filemode: __uint16_t? // zero/nil if unknown
-        public var mode: Filter.Mode
-        public var options: Filter.Options
+        internal var repo: Repository?
+        internal var path: String?
+        internal var oid: Oid?  // zero/nil if unknown (which is likely)
+        internal var filemode: __uint16_t? // zero/nil if unknown
+        internal var mode: Filter.Mode?
+        internal var options: Filter.Options?
+        
+        
+        internal init(
+            repo: Repository? = nil,
+            path: String? = nil,
+            oid: Oid? = nil,
+            filemode: __uint16_t? = nil,
+            mode: Filter.Mode? = nil,
+            options: Filter.Options? = nil)
+        {
+            self.repo = repo
+            self.path = path
+            self.oid = oid
+            self.filemode = filemode
+            self.mode = mode
+            self.options = options
+        }
     }
     
     
