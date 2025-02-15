@@ -9,6 +9,30 @@
 //
 
 import Foundation
+import Either
+
+
+
+public struct git_attr_file {
+    var rc: RefCount
+    var lock: Mutex
+    var entry: git_attr_file_entry
+    var source: git_attr_file_source
+    var rules: git_vector<Either<git_attr_rule, git_attr_fnmatch>>
+    var pool: Pool
+    var nonexistent: CUnsignedInt = 1
+    var session_key: CInt
+    var cache_data: Either<Oid, Filestamp>
+}
+
+
+
+public struct git_attr_path {
+    var full: String
+    var path: String
+    var basename: String
+    var is_dir: Bool
+}
 
 
 

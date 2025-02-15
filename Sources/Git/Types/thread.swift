@@ -59,6 +59,19 @@ public enum TlsData {}
 
 
 
+public actor Mutex: AnyActorProtocol {
+    func run<Return>(_ block: () -> Return) -> Return {
+        block()
+    }
+    
+    
+    func run<Return, E: Error>(_ block: () throws(E) -> Return) throws(E) -> Return {
+        try block()
+    }
+}
+
+
+
 // MARK: - Migration
 
 @available(*, unavailable, renamed: "Int32", message: "Simply mark the value as `@Volatile`")
@@ -70,8 +83,8 @@ public typealias git_atomic64 = Never//Atomic64
 @available(*, unavailable, renamed: "Mutex")
 public typealias git_mutex = Mutex
 
-@available(*, unavailable, message: "Use structured concurrency instead. If you need atomic access to a value, mark it `@Volatile`.")
-public typealias Mutex = CUnsignedInt
+//@available(*, unavailable, message: "Use structured concurrency instead. If you need atomic access to a value, mark it `@Volatile`.")
+//public typealias Mutex = CUnsignedInt
 
 @available(*, unavailable, renamed: "ThreadReadWriteLock")
 public typealias git_rwlock = ThreadReadWriteLock

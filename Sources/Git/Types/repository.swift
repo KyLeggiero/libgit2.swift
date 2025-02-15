@@ -161,60 +161,60 @@ public extension ConfigmapValue {
 // MARK: - Migration
 
 @available(*, unavailable, renamed: "Repository")
-typealias git_repository = Repository
+public typealias git_repository = Repository
 
 @available(*, unavailable, renamed: "ConfigmapItem")
-typealias git_configmap_item = ConfigmapItem
+public typealias git_configmap_item = ConfigmapItem
 
 
 
 @available(*, unavailable, renamed: "ConfigmapItem.autoCrlf")
-let GIT_CONFIGMAP_AUTO_CRLF = ConfigmapItem.autoCrlf
+public let GIT_CONFIGMAP_AUTO_CRLF = ConfigmapItem.autoCrlf
 
 @available(*, unavailable, renamed: "ConfigmapItem.eol")
-let GIT_CONFIGMAP_EOL = ConfigmapItem.eol
+public let GIT_CONFIGMAP_EOL = ConfigmapItem.eol
 
 @available(*, unavailable, renamed: "ConfigmapItem.symlinks")
-let GIT_CONFIGMAP_SYMLINKS = ConfigmapItem.symlinks
+public let GIT_CONFIGMAP_SYMLINKS = ConfigmapItem.symlinks
 
 @available(*, unavailable, renamed: "ConfigmapItem.ignoreCase")
-let GIT_CONFIGMAP_IGNORECASE = ConfigmapItem.ignoreCase
+public let GIT_CONFIGMAP_IGNORECASE = ConfigmapItem.ignoreCase
 
 @available(*, unavailable, renamed: "ConfigmapItem.fileMode")
-let GIT_CONFIGMAP_FILEMODE = ConfigmapItem.fileMode
+public let GIT_CONFIGMAP_FILEMODE = ConfigmapItem.fileMode
 
 @available(*, unavailable, renamed: "ConfigmapItem.ignoreStat")
-let GIT_CONFIGMAP_IGNORESTAT = ConfigmapItem.ignoreStat
+public let GIT_CONFIGMAP_IGNORESTAT = ConfigmapItem.ignoreStat
 
 @available(*, unavailable, renamed: "ConfigmapItem.trustCTime")
-let GIT_CONFIGMAP_TRUSTCTIME = ConfigmapItem.trustCTime
+public let GIT_CONFIGMAP_TRUSTCTIME = ConfigmapItem.trustCTime
 
 @available(*, unavailable, renamed: "ConfigmapItem.abbrev")
-let GIT_CONFIGMAP_ABBREV = ConfigmapItem.abbrev
+public let GIT_CONFIGMAP_ABBREV = ConfigmapItem.abbrev
 
 @available(*, unavailable, renamed: "ConfigmapItem.precompose")
-let GIT_CONFIGMAP_PRECOMPOSE = ConfigmapItem.precompose
+public let GIT_CONFIGMAP_PRECOMPOSE = ConfigmapItem.precompose
 
 @available(*, unavailable, renamed: "ConfigmapItem.safeCrlf")
-let GIT_CONFIGMAP_SAFE_CRLF = ConfigmapItem.safeCrlf
+public let GIT_CONFIGMAP_SAFE_CRLF = ConfigmapItem.safeCrlf
 
 @available(*, unavailable, renamed: "ConfigmapItem.logAllRefUpdates")
-let GIT_CONFIGMAP_LOGALLREFUPDATES = ConfigmapItem.logAllRefUpdates
+public let GIT_CONFIGMAP_LOGALLREFUPDATES = ConfigmapItem.logAllRefUpdates
 
 @available(*, unavailable, renamed: "ConfigmapItem.protectHfs")
-let GIT_CONFIGMAP_PROTECTHFS = ConfigmapItem.protectHfs
+public let GIT_CONFIGMAP_PROTECTHFS = ConfigmapItem.protectHfs
 
 @available(*, unavailable, renamed: "ConfigmapItem.protectNtfs")
-let GIT_CONFIGMAP_PROTECTNTFS = ConfigmapItem.protectNtfs
+public let GIT_CONFIGMAP_PROTECTNTFS = ConfigmapItem.protectNtfs
 
 @available(*, unavailable, renamed: "ConfigmapItem.fSyncObjectFiles")
-let GIT_CONFIGMAP_FSYNCOBJECTFILES = ConfigmapItem.fSyncObjectFiles
+public let GIT_CONFIGMAP_FSYNCOBJECTFILES = ConfigmapItem.fSyncObjectFiles
 
 @available(*, unavailable, renamed: "ConfigmapItem.logPaths")
-let GIT_CONFIGMAP_LONGPATHS = ConfigmapItem.logPaths
+public let GIT_CONFIGMAP_LONGPATHS = ConfigmapItem.logPaths
 
 @available(*, unavailable, renamed: "ConfigmapItem.cacheMax")
-let GIT_CONFIGMAP_CACHE_MAX = ConfigmapItem.cacheMax
+public let GIT_CONFIGMAP_CACHE_MAX = ConfigmapItem.cacheMax
 
 
 

@@ -41,14 +41,6 @@ public extension Oid {
         case sha1 = 1
         
         case sha256 = 2
-        
-        
-        var size: UInt16 {
-            switch self {
-            case .sha1: 20
-            case .sha256: 32
-            }
-        }
     }
 }
 

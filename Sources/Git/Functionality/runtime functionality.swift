@@ -105,7 +105,7 @@ public extension Runtime {
     
     
     
-    typealias InitFunction = () async throws(GitError) -> Void
+    typealias InitFunction = @Sendable () async throws(GitError) -> Void
     
     typealias ShutdownFunction = @Volatile () async -> Void
 }

@@ -38,11 +38,12 @@ public func git_filter_list_load(
     blob: git_blob?, /* can be NULL */
     path: String,
     mode: Filter.Mode,
-    flags: Filter.Flag) throws(GitError) -> git_filter_list? {
-        var filter_session = git_filter_session()
-        filter_session.options.flags = flags
-        
-        return try git_filter_list__load(repo: repo, blob: blob, path: path, mode: mode, filter_session: filter_session)
+    flags: Filter.Flag)
+throws(GitError) -> git_filter_list? {
+    var filter_session = git_filter_session()
+    filter_session.options.flags = flags
+    
+    return try git_filter_list__load(repo: repo, blob: blob, path: path, mode: mode, filter_session: &filter_session)
 }
 
 
@@ -648,7 +649,7 @@ public struct git_filter_list: AnyStructProtocol {
 
 
 
-private struct git_filter_def {
+private struct git_filter_def: AnyStructProtocol {
     var filter_name: String
     var filter: Filter
     var priority: CInt
@@ -1043,48 +1044,67 @@ static int filter_list_new(
     *out = fl;
     return 0;
 }
+ 
+ */
 
-static int filter_list_check_attributes(
-    const char ***out,
-    git_repository *repo,
-    git_filter_session *filter_session,
-    git_filter_def *fdef,
-    const git_filter_source *src)
+private func filter_list_check_attributes(
+    repo: Repository,
+    filter_session: git_filter_session,
+    fdef: git_filter_def,
+    src: Filter.Source)
+throws(GitError) -> String?
 {
-    const char **strs = git__calloc(fdef->nattrs, sizeof(const char *));
-    git_attr_options attr_opts = GIT_ATTR_OPTIONS_INIT;
-    size_t i;
-    int error;
-
-    GIT_ERROR_CHECK_ALLOC(strs);
-
-    if ((src->options.flags & GIT_FILTER_NO_SYSTEM_ATTRIBUTES) != 0)
-        attr_opts.flags |= GIT_ATTR_CHECK_NO_SYSTEM;
-
-    if ((src->options.flags & GIT_FILTER_ATTRIBUTES_FROM_HEAD) != 0)
-        attr_opts.flags |= GIT_ATTR_CHECK_INCLUDE_HEAD;
-
-    if ((src->options.flags & GIT_FILTER_ATTRIBUTES_FROM_COMMIT) != 0) {
-        attr_opts.flags |= GIT_ATTR_CHECK_INCLUDE_COMMIT;
-
-#ifndef GIT_DEPRECATE_HARD
-        if (src->options.commit_id)
-            git_oid_cpy(&attr_opts.attr_commit_id, src->options.commit_id);
-        else
-#endif
-        git_oid_cpy(&attr_opts.attr_commit_id, &src->options.attr_commit_id);
+    let strs: [String?] = .init(repeating: nil, count: fdef.nattrs)
+    var attr_opts = GIT_ATTR_OPTIONS_INIT
+    var i: size_t
+    var error: GitError
+    
+    if let options = src.options {
+        if options.flags.contains(.noSystemAttributes) {
+            attr_opts.flags.insert(.GIT_ATTR_CHECK_NO_SYSTEM)
+        }
+        
+        if options.flags.contains(.noSystemAttributes) {
+            attr_opts.flags.insert(.GIT_ATTR_CHECK_NO_SYSTEM)
+        }
+        
+        if options.flags.contains(.attributesFromHead) {
+            attr_opts.flags.insert(.GIT_ATTR_CHECK_INCLUDE_HEAD)
+        }
+        
+        if options.flags.contains(.attributesFromCommit) {
+            attr_opts.flags.insert(.GIT_ATTR_CHECK_INCLUDE_COMMIT)
+            
+            // The following code translates this original C code:
+            //
+            // git_oid_cpy(&attr_opts.attr_commit_id, &src->options.attr_commit_id);
+            
+            do {
+                attr_opts.attr_commit_id = try src.options?.attributeLodingCommitId?.copy()
+            }
+            catch {}
+        }
     }
 
-    error = git_attr_get_many_with_session(
-        strs, repo, filter_session->attr_session, &attr_opts, src->path, fdef->nattrs, fdef->attrs);
-
-    /* if no values were found but no matches are needed, it's okay! */
-    if (error == GIT_ENOTFOUND && !fdef->nmatches) {
-        git_error_clear();
-        git__free((void *)strs);
-        return 0;
+    do {
+        try git_attr_get_many_with_session(
+            strs, repo, filter_session->attr_session, &attr_opts, src->path, fdef->nattrs, fdef->attrs);
     }
-
+    catch let error where error.code == GIT_ENOTFOUND && (0 == fdef.nmatches) {
+        /* if no values were found but no matches are needed, it's okay! */
+        return nil
+    }
+    // The above code translates this original C code:
+    //
+    // error = git_attr_get_many_with_session(
+    //     strs, repo, filter_session->attr_session, &attr_opts, src->path, fdef->nattrs, fdef->attrs);
+    // if (error == GIT_ENOTFOUND && !fdef->nmatches) {
+    //     git_error_clear();
+    //     git__free((void *)strs);
+    //     return 0;
+    // }
+        
+    
     for (i = 0; !error && i < fdef->nattrs; ++i) {
         const char *want = fdef->attrs[fdef->nattrs + i];
         git_attr_value_t want_type, found_type;
@@ -1102,7 +1122,7 @@ static int filter_list_check_attributes(
                 strcmp(want, "*"))
             error = GIT_ENOTFOUND;
     }
-
+    
     if (error)
         git__free((void *)strs);
     else
@@ -1111,7 +1131,9 @@ static int filter_list_check_attributes(
     return error;
 }
 
-int git_filter_list_new(
+/*
+
+ int git_filter_list_new(
     git_filter_list **out,
     git_repository *repo,
     git_filter_mode_t mode,
@@ -1150,26 +1172,43 @@ throws(GitError)
         src.options = filter_session.options
         
         if let blob {
-            git_oid_cpy(&src.oid, git_blob_id(blob))
+            src.oid = git_blob_id(obj: blob)
         }
         
-        git_vector_foreach(&filter_registry.filters, idx, fdef) {
-            const char **values = NULL;
-            void *payload = NULL;
+        // for ((idx) = 0; (idx) < (filter_registry.filters)->length && ((fdef) = (filter_registry.filters)->contents[(idx)], 1); (idx)++ )
+    filterLoop:
+        for fdef in filter_registry.filters {
+            let values: [String]? = nil
+            var payload: Any? = nil
             
-            if (!fdef || !fdef->filter)
-                continue;
+            guard nil != fdef?.filter else {
+                continue filterLoop
+            }
             
-            if (fdef->nattrs > 0) {
-                error = filter_list_check_attributes(
-                    &values, repo,
-                    filter_session, fdef, &src);
+            if (fdef.nattrs > 0) {
+                do {
+                    filter_list_check_attributes(
+                        &values, repo,
+                        filter_session, fdef, &src)
+                }
+                catch let error where error.code == GIT_ENOTFOUND {
+                    continue filterLoop
+                }
+                catch let error where error.code != nil {
+                    break filterLoop
+                }
                 
-                if (error == GIT_ENOTFOUND) {
-                    error = 0;
-                    continue;
-                } else if (error < 0)
-                            break;
+                // The above code translates this original C code:
+                //
+                // error = filter_list_check_attributes(
+                //     &values, repo,
+                //     filter_session, fdef, &src);
+                //
+                // if (error == GIT_ENOTFOUND) {
+                //     error = 0;
+                //     continue;
+                // } else if (error < 0)
+                //             break;
             }
             
             if (!fdef->initialized && (error = filter_initialize(fdef)) < 0)

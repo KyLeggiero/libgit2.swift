@@ -10,12 +10,23 @@
 
 import Foundation
 
+
+
 /**
  * Get the id of a blob.
  *
- * @param blob a previously loaded blob.
- * @return SHA1 hash for this blob.
+ * - Parameter blob: a previously loaded blob.
+ * - Returns: SHA1 hash for this blob.
  */
 public func git_blob_id(obj: git_blob) -> Oid {
-    obj.cached.oid
+    // unsure if ths is what the C version meant by
+    // ```object_api.c
+    //     return git_oject_id((const git_object *)obj);
+    // ```
+    // ```object.c
+    // const git_oid *git_object_id(const git_object *obj) {
+    //     return &obj->cached.oid;
+    // }
+    // ```
+    obj.object.cached.oid
 }

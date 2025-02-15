@@ -20,6 +20,7 @@ public typealias AnyTypeComparator<Value> = @Sendable (Value, Value) -> Comparis
 
 
 /// An array with a built-in way to self-sort as items are added
+// Analogous to `git_vector`
 public struct SelfSortingArray<Element: AnyTypeProtocol>: AnyStructProtocol {
     public var comparator: AnyTypeComparator<Element>?
     public var contents: [Element]
@@ -51,6 +52,13 @@ public struct SelfSortingArray<Element: AnyTypeProtocol>: AnyStructProtocol {
         self.contents = contents
         self.flags = flags.subtracting(.sorted)
     }
+    
+    
+    public init() {
+        self.comparator = nil
+        self.contents = []
+        self.flags = []
+    }
 }
 
 
@@ -64,6 +72,12 @@ extension SelfSortingArray: ExpressibleByArrayLiteral {
             self.init(contents: elements)
         }
     }
+}
+
+
+
+extension SelfSortingArray: Sequence {
+    
 }
 
 

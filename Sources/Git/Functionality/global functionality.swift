@@ -61,15 +61,15 @@ private extension Libgit2 {
     
     @MainActor
     static let init_fns: [Runtime.InitFunction] = {
-        let general: [Runtime.InitFunction] = [
+        let general: [Runtime.InitFunction?] = [
 //            git_allocator_global_init,
-            GitError.globalInit,
+            GitError.initialize,
 //            git_threads_global_init,
 //            git_oid_global_init,
 //            git_rand_global_init,
 //            git_hash_global_init,
             SysDir.globalInit,
-            Filter.initialize,
+            git_filter_global_init, // Filter.globalInit,
             git_merge_driver_global_init,
             git_transport_ssh_libssh2_global_init,
             git_stream_registry_global_init,

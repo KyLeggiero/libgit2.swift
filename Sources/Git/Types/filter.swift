@@ -375,6 +375,9 @@ public var GIT_FILTER_VERSION: CUnsignedInt { fatalError() }
 @available(*, unavailable, message: "Unnecessary in Swift")
 public func git_filter_free(_: inout git_filter) { fatalError() }
 
+@available(*, unavailable, renamed: "Filter.globalInit")
+public func git_filter_global_init() -> CInt { fatalError() }
+
 
 
 @available(*, unavailable, renamed: "Filter.Source")
@@ -388,7 +391,7 @@ public typealias git_filter_options = Filter.Options
 @available(*, unavailable)
 public extension Filter.Options {
     @available(*, unavailable, renamed: "attributeLodingCommitId")
-    var attr_commit_id: git_oid { fatalError() }
+    var attr_commit_id: git_oid { get { fatalError() } set { fatalError() } }
 }
 
 
