@@ -31,6 +31,7 @@ import Foundation
 /// - Returns: The value of `expr`, iff it is non-`nil`.
 ///
 /// - Throws: A ``GitError`` iff `expr` is `nil`, containing information provided in `expressionLabel` and `onNil`
+@discardableResult
 internal func assert<T>(
     expr: T?,
     expressionLabel: String = #function,

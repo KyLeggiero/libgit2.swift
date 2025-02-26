@@ -10,8 +10,8 @@ If you're going to use it directly, then you **must** read these important usage
 
 ```
 // 🚨⛔️⚠️🛑 UNDEFINED BEHVIOR
-import libgit2
-import Git
+import libgit2 // ❌ NEVER import both
+import Git     // ❌ NEVER import both
 ```
 
 While Swift can happily use C code like libgit2, this library contains migration-only code with identical signatures as those in libgit2, to aid in porting code from samples and your own prior knowledge.
@@ -103,16 +103,16 @@ func newStyle() throws(GitError) {
 
 #### Side-channel errors
 
-libgit2 also includes side-channel errors. That is to say, sometimes it will return a negative number to signify that an error has occurred, and then set a global error variable.
+libgit2 also includes side-channel errors. That is to say, sometimes it will return a negative number to signify that an error has occurred, and then set a global error variable. Sometimes it sets that global error variable in other circumstances, such as `GIT_ADD_SIZET_OVERFLOW` and its ilk. 
 
 This is a common C pattern (see also: `errno`), because C does not have any built-in error handling mechanism.
-Since Swift _does_ have a built-in error-handling mechanism in the form of `throw`/`catch`/`try`/etc., libgit2.swift uses that instead. This means that the side-channel error handling is removed from this package, in favor of Swift builtin error handling.
+Since Swift _does_ have a built-in error-handling mechanism in the form of `throw`/`catch`/`try`/etc., libgit2.swift uses that instead. This means that **side-channel error handling is removed from this package**, in favor of Swift's builtin error handling.
 
 That will mostly work exactly the same. It will often include more information for recovery, as well (e.g. stack traces).
 
-However, there are some situations where it won't work the same. For example, there are situations in libgit2 where it sets that side-channel error, but _does not return a negative number_. This can be seen with the macro `GIT_ASSERT_WITH_RETVAL` and its ilk, which sav an error value to that side channel if some value is `null`, and then set that missing value to be a backup value and continue with the program instead of returning.
+However, there are some situations where it won't work the same. For example, there are situations in libgit2 where it sets that side-channel error, but _does not return a negative number_. This can be seen with the macro `GIT_ASSERT_WITH_RETVAL` and its ilk, which save an error value to that side channel if some value is `null`, and then set that missing value to be a backup value and continue with the program instead of returning. Or `GIT_ADD_SIZET_OVERFLOW`, which set that side-channel error if there's overflow, then returns a `true` or `false` indicating overflow, as well as outputting the overflown error.
 
-In libgit2.swift, these situations do not set any such error, but otherwise behave the same.
+In libgit2.swift, **these situations do not set any such error nor throw a Swift error**, but otherwise behave the same.
 
 
 #### Fewer errors???

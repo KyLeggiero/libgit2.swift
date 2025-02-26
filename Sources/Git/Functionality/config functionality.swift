@@ -14,6 +14,11 @@ import SafeCollectionAccess
 
 
 
+@inline(__always)
+public let GIT_CONFIG_FILENAME_SYSTEM = "gitconfig"
+
+
+
 public extension Config {
     
     /// Parse a string value as a bool.

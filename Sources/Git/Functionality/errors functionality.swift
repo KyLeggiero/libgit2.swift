@@ -39,6 +39,20 @@ public extension GitError {
 
 
 
+// MARK: - Predefined errors
+
+public extension GitError {
+    
+    static let outOfMemory = Self(
+        message: "Out of memory",
+        kind: .noMemory
+    )
+}
+
+
+
+// MARK: -
+
 extension GitError: InitializableByOneArgument {
     typealias OtherType = Error
 }
@@ -136,7 +150,26 @@ private extension LocalizedError {
 
 
 
+/**
+ * Set the error message to a special value for memory allocation failure.
+ *
+ * The normal `git_error_set_str()` function attempts to `strdup()` the
+ * string that is passed in.  This is not a good idea when the error in
+ * question is a memory allocation failure.  That circumstance has a
+ * special setter function that sets the error string to a known and
+ * statically allocated internal value.
+ */
+@available(*, deprecated, renamed: "GitError.outOfMemory", message: "libgit2.swift doesn't support side-channel errors, so throwing `.outOfMemory` is the same as calling this")
+public func git_error_set_oom() throws(GitError) {
+    throw .outOfMemory
+}
+
+
+
 // MARK: - Migrated
 
 @available(*, unavailable, renamed: "GitError.initialize")
 public func git_error_global_init() -> CInt { fatalError() }
+
+@available(*, unavailable, renamed: "GitError.outOfMemory")
+public var oom_error: git_error { fatalError() }

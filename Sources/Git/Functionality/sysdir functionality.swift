@@ -14,6 +14,17 @@ import Foundation
 
 
 
+private let git_sysdir__dirs: [SysDir.Dir] = [
+    .init(git_sysdir_guess_system_dirs),
+    .init(git_sysdir_guess_global_dirs),
+    .init(git_sysdir_guess_xdg_dirs),
+    .init(git_sysdir_guess_programdata_dirs),
+    .init(git_sysdir_guess_template_dirs),
+    .init(git_sysdir_guess_home_dirs),
+]
+
+
+
 public extension SysDir {
     
     /// Caches configuration file search paths.
@@ -34,9 +45,111 @@ public extension SysDir {
 
 
 
+/**
+ * Get the search path for global/system/xdg files
+ *
+ * - Returns: git_str containing search path
+ * - Parameter which: which list of paths to return
+ * - Throws: nothing on success, a ``GitError`` with a code on failure
+ */
+public func git_sysdir_get(which: SysDir) throws(GitError) -> String? {
+    try GIT_ERROR_CHECK_ERROR(try git_sysdir_check_selector(which: which))
+    return git_sysdir__dirs[which].buf
+}
+
+
+
+/**
+ * Find a "system" file (i.e. one shared for all users of the system).
+ *
+ * - Parameter path: buffer to write the full path into
+ * - Parameter filename: name of file to find in the home directory
+ * - Throws: nothing if found, ``GitError/Code/objectNotFound`` if not found, or ``GitError/Code/__generic`` on other OS error
+ */
+public func git_sysdir_find_system_file(path: String, filename: String) throws(GitError) {
+    git_sysdir_find_in_dirlist(
+        path: path,
+        name: filename,
+        which: .system,
+        label: "system")
+}
+
+
+
 // MARK: - Private functionality
 
+// MARK: Guessing
+
+func git_sysdir_guess_system_dirs() throws(GitError) -> String? {
+#if GIT_WIN32
+    return git_win32__find_system_dirs("etc")
+#else
+    return git_str_sets("/etc")
+#endif
+}
+
+
+// MARK: etc.
+
+func git_sysdir_find_in_dirlist(
+    path: String,
+    name: String,
+    which: SysDir,
+    label: String)
+{
+    let len: size_t
+    let scan: String
+    var next: String? = nil
+    let syspath: String
+    
+    GIT_ERROR_CHECK_ERROR(git_sysdir_get(&syspath, which));
+    if (!syspath || !git_str_len(syspath))
+        goto done;
+    
+    for (scan = git_str_cstr(syspath); scan; scan = next) {
+        /* find unescaped separator or end of string */
+        for (next = scan; *next; ++next) {
+            if (*next == GIT_PATH_LIST_SEPARATOR &&
+                 (next <= scan || next[-1] != '\\'))
+                break;
+        }
+        
+        len = (size_t)(next - scan);
+        next = (*next ? next + 1 : NULL);
+        if (!len)
+            continue;
+        
+        GIT_ERROR_CHECK_ERROR(git_str_set(path, scan, len));
+        if (name)
+            GIT_ERROR_CHECK_ERROR(git_str_joinpath(path, path->ptr, name));
+        
+        if (git_fs_path_exists(path->ptr))
+            return 0;
+    }
+    
+done:
+    if (name)
+        git_error_set(GIT_ERROR_OS, "the %s file '%s' doesn't exist", label, name);
+    else
+        git_error_set(GIT_ERROR_OS, "the %s directory doesn't exist", label);
+    git_str_dispose(path);
+    return GIT_ENOTFOUND;
+}
+
+
+public func git_sysdir_check_selector(which: SysDir) throws(GitError) {
+    guard which.rawValue >= ARRAY_SIZE(git_sysdir__dirs) else {
+        return
+    }
+
+    git_error_set(GIT_ERROR_INVALID, "config directory selector out of range");
+    return -1;
+}
+
+
+
 private extension SysDir {
+    
     @Volatile
     struct Dir: AnyStructProtocol, @preconcurrency CaseIterable {
         @ResettableLazy

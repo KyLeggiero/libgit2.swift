@@ -12,5 +12,5 @@ import Foundation
 
 
 
-public let GIT_ATTR_OPTIONS_VERSION: CUnsignedInt = 1
+public let GIT_ATTR_OPTIONS_VERSION: Versioned.Version = 1
 public var GIT_ATTR_OPTIONS_INIT: git_attr_options { .init(version: GIT_ATTR_OPTIONS_VERSION, flags: []) }

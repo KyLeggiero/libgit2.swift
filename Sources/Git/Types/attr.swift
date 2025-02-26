@@ -15,19 +15,33 @@ import Foundation
 /**
 * An options structure for querying attributes.
 */
-public struct git_attr_options: AnyStructProtocol {
-    var version: CUnsignedInt
+public struct git_attr_options: AnyStructProtocol, Versioned {
+    
+    public var version: Version
     
     /** A combination of GIT_ATTR_CHECK flags */
-    var flags: git_attr_check
+    public var flags: git_attr_check
     
-    var reserved: AnyTypeProtocol?
+    public var reserved: AnyTypeProtocol?
     
     /**
      * The commit to load attributes from, when
      * `GIT_ATTR_CHECK_INCLUDE_COMMIT` is specified.
      */
-    var attr_commit_id: Oid?
+    public var attr_commit_id: Oid?
+    
+    
+    init(version: Version, flags: git_attr_check, reserved: AnyTypeProtocol? = nil, attr_commit_id: Oid? = nil) {
+        self.version = version
+        self.flags = flags
+        self.reserved = reserved
+        self.attr_commit_id = attr_commit_id
+    }
+    
+    
+    public init(version: Version) {
+        self.init(version: version, flags: [], reserved: nil, attr_commit_id: nil)
+    }
 }
 
 

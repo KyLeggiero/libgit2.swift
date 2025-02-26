@@ -141,30 +141,90 @@ public extension Repository {
 
 
 @inline(__always)
-private func config_path_system(use_env: Bool) throws(GitError) -> String {
+private func config_path_system(backup: String? = nil, use_env: Bool) throws(GitError) -> String? {
+    
+    var out = backup
+    
     if (use_env) {
-        var no_system_buf = String()
-        let no_system: CInt = 0
+        var no_system: Bool
         
         do {
-            no_system_buf = try _getEnv(name: "GIT_CONFIG_NOSYSTEM")
+            let no_system_buf = try _getEnv(name: "GIT_CONFIG_NOSYSTEM")
+            no_system = try Config.parseBool(no_system_buf)
         }
-        catch let error where error.code != .objectNotFound {
-            throw error
+        catch {
+            guard error.code == .objectNotFound else {
+                throw error
+            }
         }
-
-        try git_config_parse_bool(&no_system, no_system_buf.ptr);
-        git_str_dispose(&no_system_buf);
-
-        if (no_system)
-            return 0;
-
-        error = git__getenv(out, "GIT_CONFIG_SYSTEM");
-
-        if (error == 0 || error != GIT_ENOTFOUND)
-            return 0;
+        
+        if no_system {
+            return out
+        }
+        
+        do {
+            out = try _getEnv(name: "GIT_CONFIG_SYSTEM")
+            // error == 0
+            return out
+        }
+        catch {
+            guard error.code == .objectNotFound else {
+                // error != GIT_ENOTFOUND
+                return out
+            }
+        }
+        catch {
+            
+        }
     }
 
-    git_config__find_system(out);
+    try git_config__find_system(path: out)
     return 0;
+    
+    // The above code translates this original C code:
+    //
+    // GIT_INLINE(int) config_path_system(git_str *out, bool use_env)
+    // {
+    //     if (use_env) {
+    //         git_str no_system_buf = GIT_STR_INIT;
+    //         int no_system = 0;
+    //         int error;
+    //
+    //         error = git__getenv(&no_system_buf, "GIT_CONFIG_NOSYSTEM");
+    //
+    //         if (error && error != GIT_ENOTFOUND)
+    //             return error;
+    //
+    //         error = git_config_parse_bool(&no_system, no_system_buf.ptr);
+    //         git_str_dispose(&no_system_buf);
+    //
+    //         if (no_system)
+    //             return 0;
+    //
+    //         error = git__getenv(out, "GIT_CONFIG_SYSTEM");
+    //
+    //         if (error == 0 || error != GIT_ENOTFOUND)
+    //             return 0;
+    //     }
+    //
+    //     git_config__find_system(out);
+    //     return 0;
+    // }
+}
+
+
+/**
+ * Check if a repository is a linked work tree
+ *
+ * @param repo Repo to test
+ * @return 1 if the repository is a linked work tree, 0 otherwise.
+ */
+public func git_repository_is_worktree(repo: Repository) -> Bool {
+    TODO
+}
+
+
+
+public func git_config__find_system(path: String?) throws(GitError) {
+    git_sysdir_find_system_file(path, GIT_CONFIG_FILENAME_SYSTEM)
 }

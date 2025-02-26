@@ -21,7 +21,7 @@ import Foundation
 public struct GitError: Error, AnyStructProtocol {
     let message: String?
     let kind: Kind?
-    let code: Code?
+    var code: Code?
     let systemError: CInt?
     let cause: (any Error)?
     
@@ -61,7 +61,7 @@ public extension GitError {
 
 
 public extension GitError.Code {
-    @available(*, deprecated, message: "Please use a semantic error instead...")
+    @available(*, message: "Please use a semantic error instead...")
     static var generic: Self { .__generic }
 }
 

@@ -20,6 +20,15 @@ public func git_str_dispose(string: inout String?) {
 
 
 
+private func ENSURE_SIZE(b: String, d: size_t) throws(GitError) {
+    if b == git_str__oom
+        || (d > b.count) {
+        try git_str_grow(b, d)
+    }
+}
+
+
+
 public extension String {
     
     /// If the given new string is not `nil`, then this string becomes a copy of it. If it is `nil`, then this function throws an error
@@ -180,6 +189,109 @@ public extension String {
         buffer.reserveCapacity(buffer.count + stringToAppend.count)
         buffer.append(stringToAppend)
     }
+    
+    
+    /**
+     * Resize the string buffer allocation to make more space.
+     *
+     * This will attempt to grow the string buffer to accommodate the target
+     * size.  The bstring buffer's `ptr` will be replaced with a newly
+     * allocated block of data.  Be careful so that memory allocated by the
+     * caller is not lost.  As a special variant, if you pass `target_size` as
+     * 0 and the memory is not allocated by libgit2, this will allocate a new
+     * buffer of size `size` and copy the external data into it.
+     *
+     * Currently, this will never shrink a buffer, only expand it.
+     *
+     * If the allocation fails, this will return an error and the buffer will be
+     * marked as invalid for future operations, invaliding the contents.
+     *
+     * @param str The buffer to be resized; may or may not be allocated yet
+     * @param target_size The desired available size
+     * @return 0 on success, -1 on allocation failure
+     */
+    mutating func git_str_grow(target_size: size_t) throws(GitError)
+    {
+        try self.git_str_try_grow(target_size: target_size, mark_oom: true)
+    }
+    
+    
+    /// Attempt to grow this string's internal buffer to allow it to hold at least `target_size` characters.
+    ///
+    /// Note that the string's `.count` will remain the same after this returns; the only change will be guaranteeing that enough free memory exists to contain `target_size` characters.
+    ///
+    /// - Parameters:
+    ///   - target_size: The minimum number of characters this string should be able to hold
+    mutating func git_str_try_grow(target_size: size_t) throws(GitError) {
+        
+        let target_size = target_size.nonZeroOrNil ?? self.count
+        
+        guard target_size > count else {
+            return
+        }
+        
+        guard git_str__oom != self else {
+            throw .init(code: .__generic)
+        }
+        
+        self.reserveCapacity(target_size)
+        
+        // The above code translates a bunch of original C code which did a lot of string handling which Swift handles internlly with `.reserveCapacity`. Checking for memory constraints was kept and the rest discarded.
+        //
+        //
+        // Here's checks the original performs and how they're handled above:
+        //
+        // - If the buffer points to the out-of-memory error string, throw a generic error
+        //    - This does that
+        //
+        // - If the buffer's `asize` and `size` are both `0`, then it assumes the buffer was borrowed and throws GIT_EINVALID
+        //    - Since this version mutates the current string, that string cannot be borrowed into this function
+        //
+        // - If the target size is less than or equal to the current size, do nothing
+        //    - This does that
+        //
+        // - Various checks around current vs allocated size
+        //    - These are taken care of in Swift's `String` already
+        //
+        // - Allocating at least X bytes to avoid memory holes
+        //    - This is taken care of in Swift's `String` already
+        //
+        // - If the newly-calculated size is less than the current size, then an out-of-memory error is thrown
+        //    - Since Swift doesn't really concern itself with that, this version doesn't either
+        //
+        // - Checking if reallication resulted in a null pointer, then throwing an out-of-memory error
+        //    - Since Swift doesn't really concern itself with that, this version doesn't either
+        //
+        //
+        // See libgit2/util/str.c:36 `git_str_try_grow`
+    }
+}
+
+
+
+func git_str_sets(_ string: String) -> String {
+    return git_str_set(string, string?.count ?? 0)
+}
+
+
+func git_str_set(buffer buf: inout String?, source data: String?, length len: size_t) {
+    var alloclen: size_t
+    
+    if (len == 0 || data == nil) {
+        buf?.removeAll(keepingCapacity: true)
+    } else {
+        if (data != buf) {
+            (alloclen, _) = len.addingReportingOverflow(1)
+            ENSURE_SIZE(buf, alloclen);
+            buf = data // memmove(buf, data, len);
+        }
+
+        buf->size = len;
+        if (buf->asize > buf->size)
+            buf->ptr[buf->size] = '\0';
+
+    }
+    return 0;
 }
 
 
